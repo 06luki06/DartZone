@@ -1,0 +1,26 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: API/Dockerfile
+    ports:
+      - "exposed:internal"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=value
+      - ConnectionStrings__KEY=connection_string_value
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: pwd
+      POSTGRES_DB: database_name
+    ports:
+      - "exposed:internal"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -4,3 +4,4 @@
 .github/
 .vs/
 *.user
+docker-compose.yml
