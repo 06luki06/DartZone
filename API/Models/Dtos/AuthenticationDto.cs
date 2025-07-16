@@ -1,11 +1,11 @@
 ﻿namespace At.luki0606.DartZone.API.Models.Dtos
 {
-    public class RegisterDto
+    public class AuthenticationDto
     {
         public string Username { get; set; }
         public string Password { get; set; }
 
-        public RegisterDto(string username, string password)
+        public AuthenticationDto(string username, string password)
         {
             Username = username;
             Password = password;

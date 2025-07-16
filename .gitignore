@@ -4,4 +4,6 @@
 .github/
 .vs/
 *.user
-docker-compose.yml
+.env
+
+API/appsettings.Development.json
