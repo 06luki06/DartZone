@@ -3,8 +3,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using At.luki0606.DartZone.API.Data;
+using At.luki0606.DartZone.API.Dtos;
 using At.luki0606.DartZone.API.Models;
-using At.luki0606.DartZone.API.Models.Dtos;
 using At.luki0606.DartZone.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -37,12 +37,7 @@ namespace At.luki0606.DartZone.API.Controllers
 
             (byte[] hash, byte[] salt) = PasswordHasher.HashPassword(dto.Password);
 
-            User user = new()
-            {
-                Username = dto.Username,
-                PasswordHash = hash,
-                PasswordSalt = salt
-            };
+            User user = new(dto.Username, hash, salt);
 
             _db.Users.Add(user);
             try
@@ -98,15 +93,13 @@ namespace At.luki0606.DartZone.API.Controllers
                 return Unauthorized("User not authenticated.");
             }
             User user = await _db.Users.FindAsync(Guid.Parse(userId));
-            if (user == null)
-            {
-                return NotFound("User not found.");
-            }
-            return Ok(new
-            {
-                user.Id,
-                user.Username
-            });
+            return user == null
+                ? NotFound("User not found.")
+                : Ok(new
+                {
+                    user.Id,
+                    user.Username
+                });
         }
         #endregion
 

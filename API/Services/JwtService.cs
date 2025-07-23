@@ -22,7 +22,7 @@ namespace At.luki0606.DartZone.API.Services
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Username)
                 ]),
-                Expires = DateTime.UtcNow.AddMinutes(1),
+                Expires = DateTime.UtcNow.AddHours(1),
                 IssuedAt = DateTime.UtcNow,
                 Issuer = config["Jwt:Issuer"],
                 SigningCredentials = new SigningCredentials(

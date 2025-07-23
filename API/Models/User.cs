@@ -4,18 +4,15 @@ namespace At.luki0606.DartZone.API.Models
 {
     public class User
     {
-        public Guid Id { get; set; }
-        public string Username { get; set; }
-        public byte[] PasswordHash { get; set; }
-        public byte[] PasswordSalt { get; set; }
+        #region Properties
+        public Guid Id { get; private set; }
+        public string Username { get; private set; }
+        public byte[] PasswordHash { get; private set; }
+        public byte[] PasswordSalt { get; private set; }
+        #endregion
 
-        public User()
-        {
-            Id = Guid.NewGuid();
-            Username = string.Empty;
-            PasswordHash = [];
-            PasswordSalt = [];
-        }
+        #region Ctor
+        private User() { }
 
         public User(string username, byte[] passwordHash, byte[] passwordSalt)
         {
@@ -24,5 +21,6 @@ namespace At.luki0606.DartZone.API.Models
             PasswordHash = passwordHash;
             PasswordSalt = passwordSalt;
         }
+        #endregion
     }
 }
