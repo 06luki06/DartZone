@@ -21,4 +21,4 @@ jobs:
       run: dotnet restore
     
     - name: Build .NET Project
-      run: dotnet build --no-restore -c Release .\API\API.csproj
+      run: dotnet build --no-restore -c Release ./API/API.csproj
