@@ -28,7 +28,7 @@ namespace At.luki0606.DartZone.API.Controllers
 
         #region POST
         [HttpPost("register")]
-        public async Task<IActionResult> Register(AuthenticationDto dto)
+        public async Task<IActionResult> Register(UserDto dto)
         {
             if (await _db.Users.AnyAsync(u => u.Username == dto.Username))
             {
@@ -53,7 +53,7 @@ namespace At.luki0606.DartZone.API.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(AuthenticationDto dto)
+        public async Task<IActionResult> Login(UserDto dto)
         {
             User user = await _db.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
             if (user == null)
