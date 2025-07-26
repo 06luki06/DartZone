@@ -97,6 +97,7 @@ namespace At.luki0606.DartZone.API.Controllers
             };
             return Ok(token);
         }
+        #endregion
 
         #region GET
         [Authorize]
