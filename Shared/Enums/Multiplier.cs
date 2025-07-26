@@ -1,4 +1,4 @@
-﻿namespace At.luki0606.DartZone.API.Enums
+﻿namespace At.luki0606.DartZone.Shared.Enums
 {
     public enum Multiplier
     {

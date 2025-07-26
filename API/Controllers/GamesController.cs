@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using At.luki0606.DartZone.API.Data;
-using At.luki0606.DartZone.API.Dtos;
+using At.luki0606.DartZone.API.Mappers;
 using At.luki0606.DartZone.API.Models;
+using At.luki0606.DartZone.Shared.Dtos.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,10 +17,12 @@ namespace At.luki0606.DartZone.API.Controllers
     public class GamesController : ControllerBase
     {
         private readonly DartZoneDbContext _db;
+        private readonly IDtoMapperFactory _mapperFactory;
 
-        public GamesController(DartZoneDbContext db)
+        public GamesController(DartZoneDbContext db, IDtoMapperFactory mapperFactory)
         {
             _db = db;
+            _mapperFactory = mapperFactory;
         }
 
         #region POST
@@ -28,12 +32,12 @@ namespace At.luki0606.DartZone.API.Controllers
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
             }
 
             if (!Guid.TryParse(userId, out Guid parsedUserId))
             {
-                return BadRequest("Invalid user ID.");
+                return BadRequest(new MessageResponseDto() { Message = "Invalid user ID." });
             }
 
             Game game = new(parsedUserId, 301);
@@ -42,11 +46,12 @@ namespace At.luki0606.DartZone.API.Controllers
             try
             {
                 await _db.SaveChangesAsync();
-                return Ok(new { game.Id });
+                GameResponseDto gameResponse = _mapperFactory.GetMapper<Game, GameResponseDto>().Map(game);
+                return CreatedAtAction(nameof(GetGame), new { id = game.Id }, gameResponse);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, $"An error occurred while adding the game: {ex.Message}");
+                return StatusCode(500, new MessageResponseDto() { Message = "An error occurred while adding the game" });
             }
         }
         #endregion
@@ -58,19 +63,44 @@ namespace At.luki0606.DartZone.API.Controllers
             string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
             }
             if (!Guid.TryParse(userId, out Guid parsedUserId))
             {
-                return BadRequest("Invalid user ID.");
+                return BadRequest(new MessageResponseDto() { Message = "Invalid user ID." });
             }
-            var games = await _db.Games
+            List<GameResponseDto> games = await _db.Games
                 .Where(g => g.UserId == parsedUserId)
                     .Include(g => g.Throws)
                         .ThenInclude(t => t.Darts)
-                .Select(g => new GameDto(g))
+                .Select(g => _mapperFactory.GetMapper<Game, GameResponseDto>().Map(g))
                 .ToListAsync();
             return Ok(games);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetGame(Guid id)
+        {
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+            }
+            if (!Guid.TryParse(userId, out Guid parsedUserId))
+            {
+                return BadRequest(new MessageResponseDto() { Message = "Invalid user ID." });
+            }
+            Game game = await _db.Games
+                .Where(g => g.Id == id && g.UserId == parsedUserId)
+                    .Include(g => g.Throws)
+                        .ThenInclude(t => t.Darts)
+                .FirstOrDefaultAsync();
+            if (game == null)
+            {
+                return NotFound(new MessageResponseDto() { Message = "Game not found." });
+            }
+            GameResponseDto gameResponse = _mapperFactory.GetMapper<Game, GameResponseDto>().Map(game);
+            return Ok(gameResponse);
         }
         #endregion
     }

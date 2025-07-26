@@ -21,4 +21,7 @@ jobs:
       run: dotnet restore
     
     - name: Build .NET Project
-      run: dotnet build --no-restore -c Release ./API/API.csproj
+      run: |
+        DOTNET_BUILD="dotnet build --no-restore -c Release"
+        $DOTNET_BUILD ./API/API.csproj
+        $DOTNET_BUILD ./Shared/Shared.csproj

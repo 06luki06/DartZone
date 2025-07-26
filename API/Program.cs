@@ -1,4 +1,12 @@
 using At.luki0606.DartZone.API.Data;
+using At.luki0606.DartZone.API.Mappers;
+using At.luki0606.DartZone.API.Mappers.Concrete;
+using At.luki0606.DartZone.API.Models;
+using At.luki0606.DartZone.API.Validators;
+using At.luki0606.DartZone.API.Validators.Concrete;
+using At.luki0606.DartZone.Shared.Dtos.Requests;
+using At.luki0606.DartZone.Shared.Dtos.Responses;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +25,8 @@ namespace At.luki0606.DartZone.API
 
             AddDbContext(builder);
             AddAuthentication(builder);
+            AddValidators(builder);
+            AddDtoMappers(builder);
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -63,6 +73,23 @@ namespace At.luki0606.DartZone.API
                 });
 
             builder.Services.AddAuthorization();
+        }
+
+        private static void AddValidators(WebApplicationBuilder builder)
+        {
+            builder.Services.AddScoped<IValidator<UserRequestDto>, UserRequestDtoValidator>();
+
+            builder.Services.AddScoped<Validators.IValidatorFactory, ValidatorFactory>();
+        }
+
+        private static void AddDtoMappers(WebApplicationBuilder builder)
+        {
+            builder.Services.AddScoped<IDtoMapper<User, UserResponseDto>, UserResponseDtoMapper>();
+            builder.Services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
+            builder.Services.AddScoped<IDtoMapper<Throw, ThrowResponseDto>, ThrowResponseDtoMapper>();
+            builder.Services.AddScoped<IDtoMapper<Game, GameResponseDto>, GameResponseDtoMapper>();
+
+            builder.Services.AddScoped<IDtoMapperFactory, DtoMapperFactory>();
         }
     }
 }

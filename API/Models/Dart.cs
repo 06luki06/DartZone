@@ -1,5 +1,5 @@
 ﻿using System;
-using At.luki0606.DartZone.API.Enums;
+using At.luki0606.DartZone.Shared.Enums;
 
 namespace At.luki0606.DartZone.API.Models
 {

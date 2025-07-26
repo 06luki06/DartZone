@@ -39,7 +39,7 @@ namespace At.luki0606.DartZone.API.Data
                 entity.Property(g => g.HasStarted).IsRequired();
 
                 entity.HasOne(g => g.User)
-                      .WithMany() // Du hast keine ICollection<Game> im User definiert
+                      .WithMany()
                       .HasForeignKey(g => g.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
 
