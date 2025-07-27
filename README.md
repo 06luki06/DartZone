@@ -1,5 +1,8 @@
 # DartZone
 
+[![Build](https://github.com/06luki06/DartZone/actions/workflows/pipeline.yml/badge.svg)](https://github.com/06luki06/DartZone/actions/workflows/pipeline.yml)
+[![Code Coverage](https://codecov.io/gh/06luki06/DartZone/graph/badge.svg?token=REFR0T6JKW)](https://codecov.io/gh/06luki06/DartZone)
+
 ## Routes
 
 `Response Body` marks the return type, if the request is successful.
