@@ -4,9 +4,6 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write      
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -38,26 +35,6 @@ jobs:
 
     - name: Install ReportGenerator
       run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-    - name: Generate Code Coverage Report
-      run: |
-        reportgenerator \
-        -reports:./Tests/TestResults/**/coverage.cobertura.xml \
-        -targetdir:coveragereport \
-        -reporttypes:Html
-      env:
-        PATH: $PATH:/home/runner/.dotnet/tools
-
-    - name: Debug Pages Deployment
-      run: |
-        ls -la coveragereport
-        cat coveragereport/index.html || echo "No index.html found"
-
-    - name: Deploy Coverage to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./coveragereport
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
