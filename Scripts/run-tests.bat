@@ -7,7 +7,7 @@ if exist "Tests\TestResults" (
 )
 
 echo Running dotnet test...
-dotnet test --collect:"XPlat Code Coverage"
+dotnet test --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura,opencover
 if errorlevel 1 (
     echo Tests failed.
     exit /b %errorlevel%
