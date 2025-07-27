@@ -33,7 +33,8 @@ jobs:
       uses: ./.github/actions/setup-dotnet
 
     - name: Run Tests
-      run: dotnet test --collect:"XPlat Code Coverage" --collect:"XPlat Code Coverage"
+      run: dotnet test --collect:"XPlat Code Coverage"
+      continue-on-error: false
 
     - name: Install ReportGenerator
       run: dotnet tool install --global dotnet-reportgenerator-globaltool
@@ -47,10 +48,12 @@ jobs:
       env:
         PATH: $PATH:/home/runner/.dotnet/tools
 
-    - name: Show contents
-      run: tree ./
+    - name: Debug Pages Deployment
+      run: |
+        ls -la coveragereport
+        cat coveragereport/index.html || echo "No index.html found"
 
-    - name: Deploy to GitHub Pages
+    - name: Deploy Coverage to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
