@@ -5,7 +5,7 @@ namespace At.luki0606.DartZone.Shared.Dtos.Responses
 {
     public class DartResponseDto
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.Empty;
         public Multiplier Multiplier { get; set; } = Multiplier.Single;
         public int Field { get; set; } = 0;
         public int Score => Multiplier switch

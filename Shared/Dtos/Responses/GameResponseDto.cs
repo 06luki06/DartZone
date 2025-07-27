@@ -5,7 +5,7 @@ namespace At.luki0606.DartZone.Shared.Dtos.Responses
 {
     public class GameResponseDto
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.Empty;
         public int StartScore { get; set; } = 0;
         public int CurrentScore { get; set; } = 0;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

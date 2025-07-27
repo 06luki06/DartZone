@@ -32,11 +32,30 @@ jobs:
     - name: Run Tests
       run: dotnet test --collect:"XPlat Code Coverage" --collect:"XPlat Code Coverage"
 
+    - name: Install ReportGenerator
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+    - name: Generate Code Coverage Report
+      run: |
+        reportgenerator \
+        -reports:./Tests/TestResults/**/coverage.cobertura.xml \
+        -targetdir:coveragereport \
+        -reporttypes:Html
+      env:
+        PATH: $PATH:/home/runner/.dotnet/tools
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./coveragereport
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         files: ./Tests/TestResults/**/coverage.cobertura.xml
         flags: unittests
         name: codecov-dotnet
         fail_ci_if_error: true
+
+  # SonarQube Cloud Analysis automatically triggered on push
