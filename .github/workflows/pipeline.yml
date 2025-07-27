@@ -32,6 +32,7 @@ jobs:
 
   sonarcloud:
     name: Build and analyze
+    needs: test
     runs-on: windows-latest
     steps:
       - name: Set up JDK 17
@@ -78,3 +79,9 @@ jobs:
             /d:sonar.cs.opencover.reportsPaths="./coveragereport/SonarQube.xml"
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      - name: Wait for Quality Gate result
+        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+        with:
+          scanMetadataReportFile: .scannerwork/report-task.txt
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
