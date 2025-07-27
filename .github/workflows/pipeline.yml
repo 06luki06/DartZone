@@ -30,4 +30,13 @@ jobs:
       uses: ./.github/actions/setup-dotnet
 
     - name: Run Tests
-      run: dotnet test --collect:"XPlat Code Coverage"
+      run: dotnet test --collect:"XPlat Code Coverage" --collect:"XPlat Code Coverage"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./Tests/TestResults/**/coverage.cobertura.xml
+        flags: unittests
+        name: codecov-dotnet
+        fail_ci_if_error: true
