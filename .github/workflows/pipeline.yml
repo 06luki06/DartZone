@@ -19,8 +19,8 @@ jobs:
       - name: Move Coverage Files to dedicated folder
         run: |
             mkdir -p coverage
-            cp $(find . -path "Tests/TestResults/*/coverage.cobertura.xml") coverage/
-            cp $(find . -path "Tests/TestResults/*/coverage.opencover.xml") coverage/
+            cp Tests/TestResults/*/coverage.opencover.xml coverage/
+            cp Tests/TestResults/*/coverage.cobertura.xml coverage/
       - name: Upload Code Coverage Report
         uses: actions/upload-artifact@v4
         with:
