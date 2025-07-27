@@ -5,28 +5,8 @@ on:
       - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: ./.github/actions/setup-dotnet
-      - name: Install Dotnet Coverage Tool
-        run: dotnet tool install --global dotnet-coverage
-      - name: Run Tests
-        run: dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
-        continue-on-error: false
-      - name: Upload Code Coverage Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
-
   sonarcloud:
-    name: Build and analyze
-    needs: test
+    name: Build, Test and analyze
     runs-on: windows-latest
     steps:
       - name: Set up JDK 17
@@ -56,16 +36,15 @@ jobs:
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-      - name: Download Coverage Report
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report 
+      - name: Install Dotnet Coverage Tool
+        run: dotnet tool install --global dotnet-coverage
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
           dotnet tool install --global dotnet-coverage
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"06luki06_DartZone" /o:"06luki06" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" /v:"${{ github.sha }}"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"06luki06_DartZone" /o:"06luki06" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" /v:"${{ github.sha }}" /d.sonar.qualitygate.wait=true
           dotnet build --no-incremental
+          dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
