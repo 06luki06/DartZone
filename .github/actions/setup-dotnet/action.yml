@@ -1,5 +1,5 @@
 name: Setup .NET
-    description: Gemeinsame Schritte zum Checkout und .NET-Setup
+description: Setup .NET environment for building and testing projects
 
 runs:
   using: "composite"
