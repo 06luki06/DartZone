@@ -10,7 +10,7 @@ jobs:
 
     steps:
     - name: Setup
-      uses: .github/actions/setup-dotnet
+      uses: ./.github/actions/setup-dotnet
     
     - name: Build .NET Project
       run: |
@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: Setup
-      uses: .github/actions/setup-dotnet
+      uses: ./.github/actions/setup-dotnet
 
     - name: Run Tests
       run: dotnet test --collect:"XPlat Code Coverage"
