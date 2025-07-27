@@ -1,8 +1,8 @@
 # DartZone
 
 [![Build](https://github.com/06luki06/DartZone/actions/workflows/pipeline.yml/badge.svg)](https://github.com/06luki06/DartZone/actions/workflows/pipeline.yml)
-[![Code Coverage](https://codecov.io/gh/06luki06/DartZone/graph/badge.svg?token=REFR0T6JKW)](https://codecov.io/gh/06luki06/DartZone)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=06luki06_DartZone&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=06luki06_DartZone)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=06luki06_DartZone&metric=coverage)](https://sonarcloud.io/summary/new_code?id=06luki06_DartZone)
 
 ## Routes
 
