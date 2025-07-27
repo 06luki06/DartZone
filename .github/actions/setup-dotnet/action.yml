@@ -4,7 +4,7 @@ description: Setup .NET environment for building and testing projects
 runs:
   using: "composite"
   steps:
-      uses: actions/checkout@v4
+    - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
