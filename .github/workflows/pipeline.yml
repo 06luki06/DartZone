@@ -18,9 +18,9 @@ jobs:
         continue-on-error: false
       - name: Move Coverage Files to dedicated folder
         run: |
-            New-Item -ItemType Directory -Force -Path coverage
-            Get-ChildItem -Recurse -Filter "coverage.cobertura.xml" | Copy-Item -Destination ./coverage
-            Get-ChildItem -Recurse -Filter "coverage.opencover.xml" | Copy-Item -Destination ./coverage
+            mkdir -p coverage
+            cp $(find . -path "Tests/TestResults/*/coverage.cobertura.xml") coverage/
+            cp $(find . -path "Tests/TestResults/*/coverage.opencover.xml") coverage/
       - name: Upload Code Coverage Report
         uses: actions/upload-artifact@v4
         with:
