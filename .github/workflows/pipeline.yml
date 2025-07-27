@@ -16,19 +16,15 @@ jobs:
       - name: Run Tests
         run: dotnet test --collect:"XPlat Code Coverage"
         continue-on-error: false
-      - name: Install ReportGenerator
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - name: Install Dotnet Coverage Tool
+        run: dotnet tool install --global dotnet-coverage
       - name: Generate Code Coverage Report
-        run: |
-          reportgenerator \
-            -reports:./Tests/TestResults/**/coverage.cobertura.xml \
-            -targetdir:./coveragereport \
-            -reporttypes:SonarQube
+        run: dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
       - name: Upload Code Coverage Report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: ./coveragereport
+          path: ./coverage.xml
 
   sonarcloud:
     name: Build and analyze
@@ -71,12 +67,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"06luki06_DartZone" /o:"06luki06" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="./SonarQube.xml"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"06luki06_DartZone" /o:"06luki06" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml" /d:sonar.qualitygate.wait=true
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
-      - name: Wait for Quality Gate result
-        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
-        with:
-          scanMetadataReportFile: .scannerwork/report-task.txt
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
