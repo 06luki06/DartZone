@@ -11,3 +11,4 @@ runs:
 
     - name: Restore .NET Dependencies
       run: dotnet restore
+      shell: bash
