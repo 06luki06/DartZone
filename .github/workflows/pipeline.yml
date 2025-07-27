@@ -9,25 +9,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: ./.github/actions/setup-dotnet
-
-    - name: Run Tests
-      run: dotnet test --collect:"XPlat Code Coverage"
-      continue-on-error: false
-
-    - name: Install ReportGenerator
-      run: dotnet tool install --global dotnet-reportgenerator-globaltool
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./Tests/TestResults/**/coverage.cobertura.xml
-        flags: unittests
-        name: codecov-dotnet
-        fail_ci_if_error: true
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: ./.github/actions/setup-dotnet
+      - name: Run Tests
+        run: dotnet test --collect:"XPlat Code Coverage"
+        continue-on-error: false
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      - name: Generate Code Coverage Report
+        run: |
+          reportgenerator \
+            -reports:./Tests/TestResults/**/coverage.cobertura.xml \
+            -targetdir:./coveragereport \
+            -reporttypes:SonarQube
+      - name: Upload Code Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./coveragereport
 
   sonarcloud:
     name: Build and analyze
@@ -60,11 +61,20 @@ jobs:
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
+      - name: Download Coverage Report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
       - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"06luki06_DartZone" /o:"06luki06" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          .\.sonar\scanner\dotnet-sonarscanner begin \
+            /k:"06luki06_DartZone" \
+            /o:"06luki06" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="./coveragereport/SonarQube.xml"
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
