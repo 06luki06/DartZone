@@ -1,0 +1,16 @@
+name: Setup .NET
+    description: Gemeinsame Schritte zum Checkout und .NET-Setup
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore .NET Dependencies
+      run: dotnet restore
