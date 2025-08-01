@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using At.luki0606.DartZone.Shared.Results;
 
 namespace At.luki0606.DartZone.API.Models
 {
@@ -27,15 +28,25 @@ namespace At.luki0606.DartZone.API.Models
             GameId = gameId;
             Game = null;
             Darts = [throw1, throw2, throw3];
+            foreach (Dart dart in Darts)
+            {
+                dart.SetThrow(this);
+            }
+
             CreatedAt = DateTime.UtcNow;
         }
         #endregion
 
         #region Methods
         #region Public Static Methods
-        public static int CalculateTotalScore(HashSet<Dart> darts)
+        public static Result<int> CalculateTotalScore(IEnumerable<Dart> darts)
         {
-            return darts.Sum(d => d.Score);
+            if (darts == null || darts.Count() != 3)
+            {
+                return Result<int>.Failure("A throw must consist of exactly 3 darts.");
+            }
+
+            return Result<int>.Success(darts.Sum(d => d.Score));
         }
         #endregion
         #endregion

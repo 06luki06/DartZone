@@ -38,7 +38,7 @@ namespace At.luki0606.DartZone.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserRequestDto dto)
         {
-            ValidationResult validationResult = await _validationFactory.GetValidator<UserRequestDto>().ValidateAsync(dto);
+            ValidationResult validationResult = await _validationFactory.GetValidator<UserRequestDto>().Value.ValidateAsync(dto);
             if (!validationResult.IsValid)
             {
                 return BadRequest(ValidationResultHelper.GetFirstErrorMessage(validationResult));
@@ -49,7 +49,7 @@ namespace At.luki0606.DartZone.API.Controllers
                 return BadRequest("Username already exists.");
             }
 
-            (byte[] hash, byte[] salt) = PasswordHasher.HashPassword(dto.Password);
+            (byte[] hash, byte[] salt) = PasswordHasherService.HashPassword(dto.Password);
 
             User user = new(dto.Username, hash, salt);
 
@@ -72,7 +72,7 @@ namespace At.luki0606.DartZone.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserRequestDto dto)
         {
-            ValidationResult validationResult = await _validationFactory.GetValidator<UserRequestDto>().ValidateAsync(dto);
+            ValidationResult validationResult = await _validationFactory.GetValidator<UserRequestDto>().Value.ValidateAsync(dto);
             if (!validationResult.IsValid)
             {
                 return BadRequest(ValidationResultHelper.GetFirstErrorMessage(validationResult));
@@ -85,8 +85,7 @@ namespace At.luki0606.DartZone.API.Controllers
             }
 
             using HMACSHA512 hmac = new(user.PasswordSalt);
-            byte[] computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(dto.Password));
-            if (!computedHash.AsSpan().SequenceEqual(user.PasswordHash))
+            if (PasswordHasherService.VerifyPassword(dto.Password, user.PasswordHash, user.PasswordSalt).IsFailure)
             {
                 return Unauthorized(new MessageResponseDto() { Message = "Invalid username or password." });
             }

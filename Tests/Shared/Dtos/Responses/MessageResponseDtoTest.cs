@@ -23,7 +23,7 @@ namespace At.luki0606.DartZone.Tests.Shared.Dtos.Responses
         [Test]
         public void Message_ShouldBeSettable()
         {
-            var message = "Test message";
+            string message = "Test message";
             _messageResponseDto.Message = message;
             _messageResponseDto.Message.Should().Be(message);
         }

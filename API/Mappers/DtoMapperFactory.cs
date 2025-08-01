@@ -16,8 +16,7 @@ namespace At.luki0606.DartZone.API.Mappers
             where TEntity : class
             where TDto : class
         {
-            IDtoMapper<TEntity, TDto> mapper = _serviceProvider.GetService<IDtoMapper<TEntity, TDto>>();
-            return mapper ?? throw new InvalidOperationException($"No mapper registered for {typeof(TEntity).Name} to {typeof(TDto).Name}");
+            return _serviceProvider.GetRequiredService<IDtoMapper<TEntity, TDto>>();
         }
     }
 }

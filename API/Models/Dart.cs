@@ -19,10 +19,10 @@ namespace At.luki0606.DartZone.API.Models
         #region Ctor
         private Dart() { }
 
-        public Dart(Guid throwId, Multiplier multiplier, int field)
+        public Dart(Multiplier multiplier, int field)
         {
             Id = Guid.NewGuid();
-            ThrowId = throwId;
+            ThrowId = Guid.Empty;
             Throw = null;
             Multiplier = multiplier;
             Field = field;
@@ -30,19 +30,33 @@ namespace At.luki0606.DartZone.API.Models
         #endregion
 
         #region Methods
+        #region Internal Methods
+        internal void SetThrow(Throw throwObj)
+        {
+            if (ThrowId != Guid.Empty)
+            {
+                throw new InvalidOperationException("This dart is already associated with a throw.");
+            }
+
+            Throw = throwObj ?? throw new ArgumentNullException(nameof(throwObj), "Throw cannot be null.");
+            ThrowId = throwObj.Id;
+        }
+        #endregion
+
         #region Public Static Methods
         public static int CalculateScore(Multiplier multiplier, int field)
         {
-            if (field < 1 || field > 20)
+            if (field != 25 && (field < 1 || field > 20))
             {
                 return 0;
             }
-            int baseScore = field switch
+
+            if (multiplier == Multiplier.Triple && field == 25)
             {
-                25 => 25,
-                _ => field
-            };
-            return baseScore * (int)multiplier;
+                return 0;
+            }
+
+            return field * (int)multiplier;
         }
         #endregion
         #endregion

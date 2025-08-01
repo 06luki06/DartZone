@@ -3,8 +3,10 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>At.luki0606.DartZone.API</RootNamespace>
+		<AssemblyName>At.luki0606.DartZone.API</AssemblyName>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>disable</ImplicitUsings>
+		<LangVersion>12</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -23,6 +25,10 @@
 
 	<ItemGroup>
 		<Folder Include="Scripts\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="At.luki0606.DartZone.Tests" />
 	</ItemGroup>
 
 	<ItemGroup>
