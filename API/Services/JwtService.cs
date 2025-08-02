@@ -2,18 +2,18 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using At.luki0606.DartZone.API.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace At.luki0606.DartZone.API.Services
 {
     public static class JwtService
     {
-        public static string GenerateToken(User user, IConfiguration config)
+        public static string GenerateToken(User user)
         {
             JwtSecurityTokenHandler tokenHandler = new();
 
-            byte[] key = System.Text.Encoding.UTF8.GetBytes(config["Jwt:Key"]);
+            string key = Environment.GetEnvironmentVariable("JWT_KEY");
+            byte[] keyBytes = System.Text.Encoding.UTF8.GetBytes(key);
 
             SecurityTokenDescriptor tokenDescriptor = new()
             {
@@ -24,9 +24,9 @@ namespace At.luki0606.DartZone.API.Services
                 ]),
                 Expires = DateTime.UtcNow.AddHours(1),
                 IssuedAt = DateTime.UtcNow,
-                Issuer = config["Jwt:Issuer"],
+                Issuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
                 SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key),
+                    new SymmetricSecurityKey(keyBytes),
                     SecurityAlgorithms.HmacSha256Signature)
             };
 

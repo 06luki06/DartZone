@@ -8,3 +8,4 @@ coveragereport
 .env
 
 API/appsettings.Development.json
+**/Properties/launchSettings.json

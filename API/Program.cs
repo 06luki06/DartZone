@@ -1,3 +1,4 @@
+using System;
 using At.luki0606.DartZone.API.Data;
 using At.luki0606.DartZone.API.Mappers;
 using At.luki0606.DartZone.API.Mappers.Concrete;
@@ -28,7 +29,13 @@ namespace At.luki0606.DartZone.API
             AddValidators(builder);
             AddDtoMappers(builder);
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+               .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                });
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -56,7 +63,8 @@ namespace At.luki0606.DartZone.API
 
         private static void AddAuthentication(WebApplicationBuilder builder)
         {
-            ConfigurationManager config = builder.Configuration;
+            string key = Environment.GetEnvironmentVariable("JWT_KEY");
+            byte[] keyBytes = System.Text.Encoding.UTF8.GetBytes(key);
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -67,8 +75,8 @@ namespace At.luki0606.DartZone.API
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = config["Jwt:Issuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(config["Jwt:Key"]))
+                        ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                        IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
                     };
                 });
 

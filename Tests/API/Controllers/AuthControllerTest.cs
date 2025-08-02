@@ -12,7 +12,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace At.luki0606.DartZone.Tests.API.Controllers
 {
@@ -21,18 +20,26 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
     {
         private DartZoneDbContext _dbContext = null!;
         private AuthController _controller;
+        private const string SecretKey = "SuperSecretJwtKey12345!6789@!012";
+        private const string Issuer = "TestIssuer";
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            Environment.SetEnvironmentVariable("JWT_KEY", SecretKey);
+            Environment.SetEnvironmentVariable("JWT_ISSUER", Issuer);
+        }
 
         [SetUp]
         public void SetUp()
         {
             _dbContext = HelperMethods.CreateDbContext();
-            IConfiguration config = HelperMethods.CreateConfiguration();
             IServiceProvider serviceProvider = HelperMethods.CreateServiceProvider();
 
             ValidatorFactory validatorFactory = new(serviceProvider);
             DtoMapperFactory mapperFactory = new(serviceProvider);
 
-            _controller = new(_dbContext, config, validatorFactory, mapperFactory);
+            _controller = new(_dbContext, validatorFactory, mapperFactory);
         }
 
         [TearDown]

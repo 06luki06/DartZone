@@ -14,7 +14,6 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace At.luki0606.DartZone.API.Controllers
 {
@@ -22,13 +21,11 @@ namespace At.luki0606.DartZone.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : BaseController
     {
-        private readonly IConfiguration _config;
         private readonly IValidatorFactory _validationFactory;
 
-        public AuthController(DartZoneDbContext db, IConfiguration config, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
+        public AuthController(DartZoneDbContext db, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
             : base(db, mapperFactory)
         {
-            _config = config;
             _validationFactory = validatorFactory;
         }
 
@@ -57,7 +54,7 @@ namespace At.luki0606.DartZone.API.Controllers
                 await _db.SaveChangesAsync();
                 TokenResponseDto token = new()
                 {
-                    Token = JwtService.GenerateToken(user, _config)
+                    Token = JwtService.GenerateToken(user)
                 };
                 return Created(nameof(GetCurrentUser), token);
             }
@@ -90,7 +87,7 @@ namespace At.luki0606.DartZone.API.Controllers
 
             TokenResponseDto token = new()
             {
-                Token = JwtService.GenerateToken(user, _config)
+                Token = JwtService.GenerateToken(user)
             };
             return Ok(token);
         }

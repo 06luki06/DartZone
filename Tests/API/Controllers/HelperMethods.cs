@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace At.luki0606.DartZone.Tests.API.Controllers
@@ -37,15 +36,6 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
             };
         }
 
-        internal static IConfiguration CreateConfiguration()
-        {
-            return new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    { "Jwt:Key", "SuperSecretJwtKey12345!6789@!012" },
-                    { "Jwt:Issuer", "TestIssuer" }
-                }).Build();
-        }
         internal static DartZoneDbContext CreateDbContext()
         {
             SqliteConnection connection = new("DataSource=:memory:");

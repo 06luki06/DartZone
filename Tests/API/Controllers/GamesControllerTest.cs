@@ -13,7 +13,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace At.luki0606.DartZone.Tests.API.Controllers
 {
@@ -29,13 +28,12 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
         {
             _dbContext = HelperMethods.CreateDbContext();
             IServiceProvider serviceProvider = HelperMethods.CreateServiceProvider();
-            IConfiguration config = HelperMethods.CreateConfiguration();
 
             ValidatorFactory validatorFactory = new(serviceProvider);
             DtoMapperFactory mapperFactory = new(serviceProvider);
 
             _gameController = new(_dbContext, mapperFactory);
-            _authController = new(_dbContext, config, validatorFactory, mapperFactory);
+            _authController = new(_dbContext, validatorFactory, mapperFactory);
         }
 
         [TearDown]
