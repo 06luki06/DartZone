@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using At.luki0606.DartZone.API.Data;
@@ -7,8 +6,10 @@ using At.luki0606.DartZone.API.Helpers;
 using At.luki0606.DartZone.API.Mappers;
 using At.luki0606.DartZone.API.Models;
 using At.luki0606.DartZone.API.Services;
+using At.luki0606.DartZone.API.Validators;
 using At.luki0606.DartZone.Shared.Dtos.Requests;
 using At.luki0606.DartZone.Shared.Dtos.Responses;
+using At.luki0606.DartZone.Shared.Results;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,19 +20,16 @@ namespace At.luki0606.DartZone.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseController
     {
-        private readonly DartZoneDbContext _db;
         private readonly IConfiguration _config;
-        private readonly IDtoMapperFactory _mapperFactory;
-        private readonly Validators.IValidatorFactory _validationFactory;
+        private readonly IValidatorFactory _validationFactory;
 
-        public AuthController(DartZoneDbContext db, IConfiguration config, Validators.IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
+        public AuthController(DartZoneDbContext db, IConfiguration config, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
+            : base(db, mapperFactory)
         {
-            _db = db;
             _config = config;
             _validationFactory = validatorFactory;
-            _mapperFactory = mapperFactory;
         }
 
         #region POST
@@ -46,7 +44,7 @@ namespace At.luki0606.DartZone.API.Controllers
 
             if (await _db.Users.AnyAsync(u => u.Username == dto.Username))
             {
-                return BadRequest("Username already exists.");
+                return BadRequest(new MessageResponseDto() { Message = "Username already exists." });
             }
 
             (byte[] hash, byte[] salt) = PasswordHasherService.HashPassword(dto.Password);
@@ -103,19 +101,14 @@ namespace At.luki0606.DartZone.API.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
+            Result<User> userResult = await GetAuthenticatedUser();
+            if (userResult.IsFailure)
             {
                 return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
             }
-            User user = await _db.Users.FindAsync(Guid.Parse(userId));
+            User user = userResult.Value;
 
-            if (user == null)
-            {
-                return NotFound(new MessageResponseDto() { Message = "User not found." });
-            }
-
-            UserResponseDto userResponse = _mapperFactory.GetMapper<User, UserResponseDto>().Map(user);
+            UserResponseDto userResponse = _dtoMapperFactory.GetMapper<User, UserResponseDto>().Value.Map(user);
             return Ok(userResponse);
         }
         #endregion
@@ -125,16 +118,13 @@ namespace At.luki0606.DartZone.API.Controllers
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteUser()
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
+            Result<User> userResult = await GetAuthenticatedUser();
+            if (userResult.IsFailure)
             {
                 return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
             }
-            User user = await _db.Users.FindAsync(Guid.Parse(userId));
-            if (user == null)
-            {
-                return NotFound(new MessageResponseDto() { Message = "User not found." });
-            }
+            User user = userResult.Value;
+
             _db.Users.Remove(user);
             try
             {
