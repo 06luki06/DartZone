@@ -1,5 +1,6 @@
 ﻿using System;
 using At.luki0606.DartZone.API.Models;
+using At.luki0606.DartZone.Shared.Dtos.Requests;
 using At.luki0606.DartZone.Shared.Enums;
 using FluentAssertions;
 
@@ -65,6 +66,28 @@ namespace At.luki0606.DartZone.Tests.API.Models
 
             FluentActions.Invoking(() => _dart.SetThrow(throwObj))
                 .Should().Throw<InvalidOperationException>();
+        }
+
+        [Test]
+        public void Ctor_FromRequestDto_ShouldInitializeProperties()
+        {
+            DartRequestDto dartRequestDto = new()
+            {
+                Multiplier = (Multiplier)2,
+                Field = 15
+            };
+            Dart dartFromDto = new(dartRequestDto);
+            dartFromDto.Id.Should().NotBeEmpty().And.NotBe(Guid.Empty);
+            dartFromDto.Multiplier.Should().Be(Multiplier.Double);
+            dartFromDto.Field.Should().Be(15);
+            dartFromDto.Score.Should().Be(30);
+        }
+
+        [Test]
+        public void Ctor_FromRequestDto_NullDto_ShouldThrowArgumentNullException()
+        {
+            FluentActions.Invoking(() => new Dart(null))
+                .Should().Throw<ArgumentNullException>();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using At.luki0606.DartZone.Shared.Dtos.Requests;
 using At.luki0606.DartZone.Shared.Enums;
 
 namespace At.luki0606.DartZone.API.Models
@@ -22,10 +23,14 @@ namespace At.luki0606.DartZone.API.Models
         public Dart(Multiplier multiplier, int field)
         {
             Id = Guid.NewGuid();
-            ThrowId = Guid.Empty;
-            Throw = null;
             Multiplier = multiplier;
             Field = field;
+        }
+
+        public Dart(DartRequestDto dartRequestDto)
+            : this(dartRequestDto?.Multiplier ?? throw new ArgumentNullException(nameof(dartRequestDto)),
+                   dartRequestDto.Field)
+        {
         }
         #endregion
 
@@ -46,7 +51,7 @@ namespace At.luki0606.DartZone.API.Models
         #region Public Static Methods
         public static int CalculateScore(Multiplier multiplier, int field)
         {
-            if (field != 25 && (field < 1 || field > 20))
+            if (field != 25 && (field < 0 || field > 20))
             {
                 return 0;
             }

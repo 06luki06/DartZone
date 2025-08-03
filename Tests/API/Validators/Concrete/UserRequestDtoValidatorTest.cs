@@ -9,6 +9,7 @@ namespace At.luki0606.DartZone.Tests.API.Validators.Concrete
     public class UserRequestDtoValidatorTest
     {
         private UserRequestDtoValidator _validator;
+
         [SetUp]
         public void SetUp()
         {

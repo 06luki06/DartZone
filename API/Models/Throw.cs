@@ -22,12 +22,12 @@ namespace At.luki0606.DartZone.API.Models
         #region Ctor
         private Throw() { }
 
-        public Throw(Guid gameId, Dart throw1, Dart throw2, Dart throw3)
+        public Throw(Guid gameId, Dart dart1, Dart dart2, Dart dart3)
         {
             Id = Guid.NewGuid();
             GameId = gameId;
             Game = null;
-            Darts = [throw1, throw2, throw3];
+            Darts = [dart1, dart2, dart3];
             foreach (Dart dart in Darts)
             {
                 dart.SetThrow(this);

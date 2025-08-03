@@ -173,5 +173,48 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
             UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
             unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
         }
+
+        [Test]
+        public async Task DeleteGame_ShouldReturnNoContent_WhenRequestIsValid()
+        {
+            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
+            await _authController.Register(dto);
+
+            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+            IActionResult addedGameResult = await _gameController.AddGame();
+            GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
+            IActionResult result = await _gameController.DeleteGame(addedGame.Id);
+            result.Should().BeOfType<NoContentResult>();
+        }
+
+        [Test]
+        public async Task DeleteGame_ShouldReturnNotFound_WhenGameDoesNotExist()
+        {
+            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
+            await _authController.Register(dto);
+
+            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+            IActionResult result = await _gameController.DeleteGame(Guid.NewGuid());
+            result.Should().BeOfType<NotFoundObjectResult>();
+            NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
+            notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
+        }
+
+        [Test]
+        public async Task DeleteGame_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+        {
+            _gameController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
+            };
+            IActionResult result = await _gameController.DeleteGame(Guid.NewGuid());
+            result.Should().BeOfType<UnauthorizedObjectResult>();
+            UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
+            unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+        }
     }
 }

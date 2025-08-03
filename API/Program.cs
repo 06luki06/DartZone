@@ -86,6 +86,8 @@ namespace At.luki0606.DartZone.API
         private static void AddValidators(WebApplicationBuilder builder)
         {
             builder.Services.AddScoped<IValidator<UserRequestDto>, UserRequestDtoValidator>();
+            builder.Services.AddScoped<IValidator<DartRequestDto>, DartRequestDtoValidator>();
+            builder.Services.AddScoped<IValidator<ThrowRequestDto>, ThrowRequestDtoValidator>();
 
             builder.Services.AddScoped<Validators.IValidatorFactory, ValidatorFactory>();
         }
