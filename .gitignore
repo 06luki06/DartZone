@@ -7,5 +7,6 @@ coveragereport
 *.user
 .env
 
-API/appsettings.Development.json
+API/appsettings*.json
+!API/appsettings-template.json
 **/Properties/launchSettings.json

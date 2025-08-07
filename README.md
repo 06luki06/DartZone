@@ -25,9 +25,4 @@
 | GET     | /games        | ✅ Yes        | Gets a list of your games            | ❌ –          | ✅ `List<GameResponseDto>` |
 | GET     | /games/{id}   | ✅ Yes        | Gets details of a specific game      | ❌ –          | ✅ `GameResponseDto`       |
 | DELETE  | /games/{id}   | ✅ Yes        | Deletes/Aborts a game                | ❌ –          | ❌ –                       |
-
-#### not implemented yet
-
-| Method | Route          | Requires Token | Description                           | Request Body | Response Body                 |
-|--------|----------------|----------------|---------------------------------------|--------------|-------------------------------|
 | POST    | /games/{id}/throws | ✅ Yes   | Adds a dart throw to the game        | ✅ `ThrowRequestDto` | ✅ `ThrowResponsetDto` |

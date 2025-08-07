@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using At.luki0606.DartZone.API.Data;
 using At.luki0606.DartZone.API.Mappers;
 using At.luki0606.DartZone.API.Models;
+using At.luki0606.DartZone.API.Validators;
 using At.luki0606.DartZone.Shared.Results;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,11 +14,13 @@ namespace At.luki0606.DartZone.API.Controllers
     {
         protected readonly DartZoneDbContext _db;
         protected readonly IDtoMapperFactory _dtoMapperFactory;
+        protected readonly IValidatorFactory _validationFactory;
 
-        protected BaseController(DartZoneDbContext db, IDtoMapperFactory dtoMapperFactory)
+        protected BaseController(DartZoneDbContext db, IDtoMapperFactory dtoMapperFactory, IValidatorFactory validatorFactory)
         {
             _db = db;
             _dtoMapperFactory = dtoMapperFactory;
+            _validationFactory = validatorFactory;
         }
 
         protected async Task<Result<User>> GetAuthenticatedUser()

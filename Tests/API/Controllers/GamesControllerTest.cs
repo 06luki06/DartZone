@@ -32,7 +32,7 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
             ValidatorFactory validatorFactory = new(serviceProvider);
             DtoMapperFactory mapperFactory = new(serviceProvider);
 
-            _gameController = new(_dbContext, mapperFactory);
+            _gameController = new(_dbContext, mapperFactory, validatorFactory);
             _authController = new(_dbContext, validatorFactory, mapperFactory);
         }
 
@@ -215,6 +215,71 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
             result.Should().BeOfType<UnauthorizedObjectResult>();
             UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
             unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+        }
+
+        [Test]
+        public async Task AddThrow_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+        {
+            _gameController.ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
+            };
+            IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), new ThrowRequestDto());
+            result.Should().BeOfType<UnauthorizedObjectResult>();
+            UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
+            unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+        }
+
+        [Test]
+        public async Task AddThrow_ShouldReturnBadRequest_WhenThrowRequestIsInvalid()
+        {
+            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
+            await _authController.Register(dto);
+
+            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+
+            ThrowRequestDto invalidThrow = new();
+            invalidThrow.Dart1.Field = -3;
+
+            IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), invalidThrow);
+            result.Should().BeOfType<BadRequestObjectResult>();
+            BadRequestObjectResult badRequestResult = result as BadRequestObjectResult;
+            badRequestResult.Value.Should().BeOfType<MessageResponseDto>();
+        }
+
+        [Test]
+        public async Task AddThrow_ShouldReturnNotFound_WhenGameNotFound()
+        {
+            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
+            await _authController.Register(dto);
+
+            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+            IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), new ThrowRequestDto());
+            result.Should().BeOfType<NotFoundObjectResult>();
+            NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
+            notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
+        }
+
+        [Test]
+        public async Task AddThrow_ShouldReturnCreatedAd_WhenThrowIsAddedSuccessfully()
+        {
+            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
+            await _authController.Register(dto);
+
+            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
+            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+            IActionResult addedGameResult = await _gameController.AddGame();
+            GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
+
+            IActionResult result = await _gameController.AddThrow(addedGame.Id, new ThrowRequestDto());
+            result.Should().BeOfType<CreatedAtActionResult>();
+            CreatedAtActionResult actionResult = result as CreatedAtActionResult;
+            actionResult.Value.Should().BeOfType<ThrowResponseDto>();
         }
     }
 }

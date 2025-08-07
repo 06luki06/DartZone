@@ -21,12 +21,9 @@ namespace At.luki0606.DartZone.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : BaseController
     {
-        private readonly IValidatorFactory _validationFactory;
-
         public AuthController(DartZoneDbContext db, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
-            : base(db, mapperFactory)
+            : base(db, mapperFactory, validatorFactory)
         {
-            _validationFactory = validatorFactory;
         }
 
         #region POST

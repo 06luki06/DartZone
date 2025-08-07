@@ -54,6 +54,9 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
         {
             IServiceCollection services = new ServiceCollection();
             services.AddScoped<IValidator<UserRequestDto>, UserRequestDtoValidator>();
+            services.AddScoped<IValidator<DartRequestDto>, DartRequestDtoValidator>();
+            services.AddScoped<IValidator<ThrowRequestDto>, ThrowRequestDtoValidator>();
+
             services.AddScoped<IDtoMapper<User, UserResponseDto>, UserResponseDtoMapper>();
             services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
             services.AddScoped<IDtoMapper<Throw, ThrowResponseDto>, ThrowResponseDtoMapper>();
