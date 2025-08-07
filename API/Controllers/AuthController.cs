@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using At.luki0606.DartZone.API.Constants;
 using At.luki0606.DartZone.API.Data;
 using At.luki0606.DartZone.API.Helpers;
 using At.luki0606.DartZone.API.Mappers;
@@ -38,7 +39,7 @@ namespace At.luki0606.DartZone.API.Controllers
 
             if (await _db.Users.AnyAsync(u => u.Username == dto.Username))
             {
-                return BadRequest(new MessageResponseDto() { Message = "Username already exists." });
+                return BadRequest(new MessageResponseDto() { Message = Phrases.INVALID_USERNAME_OR_PASSWORD });
             }
 
             (byte[] hash, byte[] salt) = PasswordHasherService.HashPassword(dto.Password);
@@ -57,7 +58,7 @@ namespace At.luki0606.DartZone.API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new MessageResponseDto() { Message = "An error occurred while registering the user." });
+                return StatusCode(500, new MessageResponseDto() { Message = Phrases.AN_ERROR_OCCURRED });
             }
         }
 
@@ -73,13 +74,13 @@ namespace At.luki0606.DartZone.API.Controllers
             User user = await _db.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
             if (user == null)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "Invalid username or password." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.INVALID_USERNAME_OR_PASSWORD });
             }
 
             using HMACSHA512 hmac = new(user.PasswordSalt);
             if (PasswordHasherService.VerifyPassword(dto.Password, user.PasswordHash, user.PasswordSalt).IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "Invalid username or password." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.INVALID_USERNAME_OR_PASSWORD });
             }
 
             TokenResponseDto token = new()
@@ -98,7 +99,7 @@ namespace At.luki0606.DartZone.API.Controllers
             Result<User> userResult = await GetAuthenticatedUser();
             if (userResult.IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
             }
             User user = userResult.Value;
 
@@ -115,7 +116,7 @@ namespace At.luki0606.DartZone.API.Controllers
             Result<User> userResult = await GetAuthenticatedUser();
             if (userResult.IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
             }
             User user = userResult.Value;
 
@@ -127,7 +128,7 @@ namespace At.luki0606.DartZone.API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new MessageResponseDto() { Message = "An error occurred while deleting the user." });
+                return StatusCode(500, new MessageResponseDto() { Message = Phrases.AN_ERROR_OCCURRED });
             }
         }
         #endregion

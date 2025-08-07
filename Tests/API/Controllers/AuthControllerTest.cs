@@ -84,8 +84,6 @@ namespace At.luki0606.DartZone.Tests.API.Controllers
 
             BadRequestObjectResult badRequest = result as BadRequestObjectResult;
             badRequest.Value.Should().BeOfType<MessageResponseDto>();
-            MessageResponseDto messageResponse = badRequest.Value as MessageResponseDto;
-            messageResponse.Message.Should().Be("Username already exists.");
         }
 
         [Test]

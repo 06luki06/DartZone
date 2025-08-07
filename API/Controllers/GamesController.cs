@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using At.luki0606.DartZone.API.Constants;
 using At.luki0606.DartZone.API.Data;
 using At.luki0606.DartZone.API.Helpers;
 using At.luki0606.DartZone.API.Mappers;
@@ -32,7 +33,7 @@ namespace At.luki0606.DartZone.API.Controllers
             Result<User> userResult = await GetAuthenticatedUser();
             if (userResult.IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
             }
             User user = userResult.Value;
 
@@ -47,7 +48,7 @@ namespace At.luki0606.DartZone.API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new MessageResponseDto() { Message = "An error occurred while adding the game" });
+                return StatusCode(500, new MessageResponseDto() { Message = Phrases.AN_ERROR_OCCURRED });
             }
         }
 
@@ -57,7 +58,7 @@ namespace At.luki0606.DartZone.API.Controllers
             Result<User> userResult = await GetAuthenticatedUser();
             if (userResult.IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
             }
             User user = userResult.Value;
 
@@ -74,7 +75,7 @@ namespace At.luki0606.DartZone.API.Controllers
                 .FirstOrDefaultAsync();
             if (game == null)
             {
-                return NotFound(new MessageResponseDto() { Message = "Game not found." });
+                return NotFound(new MessageResponseDto() { Message = Phrases.GAME_NOT_FOUND });
             }
 
             Dart dart1 = new(throwRequest.Dart1);
@@ -99,7 +100,7 @@ namespace At.luki0606.DartZone.API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new MessageResponseDto() { Message = "An error occurred while adding the throw" });
+                return StatusCode(500, new MessageResponseDto() { Message = Phrases.AN_ERROR_OCCURRED });
             }
         }
         #endregion
@@ -111,7 +112,7 @@ namespace At.luki0606.DartZone.API.Controllers
             Result<User> userResult = await GetAuthenticatedUser();
             if (userResult.IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
             }
             User user = userResult.Value;
 
@@ -130,7 +131,7 @@ namespace At.luki0606.DartZone.API.Controllers
             Result<User> userResult = await GetAuthenticatedUser();
             if (userResult.IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
             }
             User user = userResult.Value;
 
@@ -142,7 +143,7 @@ namespace At.luki0606.DartZone.API.Controllers
 
             if (game == null)
             {
-                return NotFound(new MessageResponseDto() { Message = "Game not found." });
+                return NotFound(new MessageResponseDto() { Message = Phrases.GAME_NOT_FOUND });
             }
 
             GameResponseDto gameResponse = _dtoMapperFactory.GetMapper<Game, GameResponseDto>().Value.Map(game);
@@ -157,7 +158,7 @@ namespace At.luki0606.DartZone.API.Controllers
             Result<User> userResult = await GetAuthenticatedUser();
             if (userResult.IsFailure)
             {
-                return Unauthorized(new MessageResponseDto() { Message = "User not authenticated." });
+                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
             }
 
             User user = userResult.Value;
@@ -167,7 +168,7 @@ namespace At.luki0606.DartZone.API.Controllers
 
             if (game == null)
             {
-                return NotFound(new MessageResponseDto() { Message = "Game not found." });
+                return NotFound(new MessageResponseDto() { Message = Phrases.GAME_NOT_FOUND });
             }
 
             _db.Games.Remove(game);
@@ -178,7 +179,7 @@ namespace At.luki0606.DartZone.API.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new MessageResponseDto() { Message = "An error occurred while deleting the game" });
+                return StatusCode(500, new MessageResponseDto() { Message = Phrases.AN_ERROR_OCCURRED });
             }
         }
         #endregion
