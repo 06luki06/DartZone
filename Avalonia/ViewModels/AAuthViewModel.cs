@@ -1,4 +1,6 @@
-﻿using At.luki0606.DartZone.AvaloniaUI.Utils;
+﻿using System.Threading.Tasks;
+using At.luki0606.DartZone.AvaloniaUI.Services.AuthService;
+using At.luki0606.DartZone.AvaloniaUI.Utils;
 using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Navigation.Regions;
@@ -7,11 +9,10 @@ namespace At.luki0606.DartZone.AvaloniaUI.ViewModels
 {
     public abstract class AAuthViewModel : BindableBase
     {
-        #region Fields
-        private readonly IRegionManager _regionManager;
-        #endregion
-
         #region Properties
+        public readonly IRegionManager RegionManager;
+        public readonly IAuthService AuthService;
+
         private string _username;
         public string Username
         {
@@ -32,16 +33,17 @@ namespace At.luki0606.DartZone.AvaloniaUI.ViewModels
         public DelegateCommand SubmitCmd { get; }
         #endregion
 
-        protected AAuthViewModel(IRegionManager regionManager, string navigationTarget)
+        protected AAuthViewModel(IRegionManager regionManager, string navigationTarget, IAuthService authService)
         {
-            _regionManager = regionManager;
+            RegionManager = regionManager;
+            AuthService = authService;
             NavigateCmd = new(() =>
             {
-                _regionManager.RequestNavigate(RegionNames.CONTENT_REGION, navigationTarget);
+                RegionManager.RequestNavigate(RegionNames.CONTENT_REGION, navigationTarget);
             });
-            SubmitCmd = new(OnSubmit);
+            SubmitCmd = new(async () => await OnSubmit());
         }
 
-        protected abstract void OnSubmit();
+        protected abstract Task OnSubmit();
     }
 }

@@ -32,6 +32,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Shared\Shared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Compile Update="Views\RegisterView.axaml.cs">
 	    <DependentUpon>RegisterView.axaml</DependentUpon>
 	  </Compile>

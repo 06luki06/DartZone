@@ -1,3 +1,5 @@
+using System.Net.Http;
+using At.luki0606.DartZone.AvaloniaUI.Services.AuthService;
 using At.luki0606.DartZone.AvaloniaUI.Utils;
 using At.luki0606.DartZone.AvaloniaUI.Views;
 using Avalonia;
@@ -23,6 +25,13 @@ namespace At.luki0606.DartZone.AvaloniaUI
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
+            containerRegistry.RegisterSingleton<HttpClient>(() => new HttpClient
+            {
+                BaseAddress = new System.Uri("http://localhost:5000/api/"),
+                Timeout = System.TimeSpan.FromSeconds(30)
+            });
+
+            containerRegistry.Register<IAuthService, AuthService>();
         }
 
         protected override void OnInitialized()
