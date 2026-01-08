@@ -1,11 +1,10 @@
 ﻿using At.luki0606.DartZone.Shared.Results;
 using FluentValidation;
 
-namespace At.luki0606.DartZone.API.Validators
+namespace At.luki0606.DartZone.API.Validators;
+
+internal interface IValidatorFactory
 {
-    public interface IValidatorFactory
-    {
-        Result<IValidator<TEntity>> GetValidator<TEntity>()
-            where TEntity : class;
-    }
+    Result<IValidator<TEntity>> GetValidator<TEntity>()
+        where TEntity : class;
 }

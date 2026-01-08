@@ -1,11 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>disable</ImplicitUsings>
-		<Nullable>disable</Nullable>
 		<RootNamespace>At.luki0606.DartZone.Shared</RootNamespace>
 		<AssemblyName>At.luki0606.DartZone.Shared</AssemblyName>
-		<LangVersion>12</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Creedengo" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);CA1716</NoWarn>
 	</PropertyGroup>
 </Project>

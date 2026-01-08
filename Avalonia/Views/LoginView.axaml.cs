@@ -2,7 +2,7 @@
 
 namespace At.luki0606.DartZone.AvaloniaUI.Views;
 
-public partial class LoginView : UserControl
+internal sealed partial class LoginView : UserControl
 {
     public LoginView()
     {

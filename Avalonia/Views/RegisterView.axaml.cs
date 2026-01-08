@@ -2,7 +2,7 @@
 
 namespace At.luki0606.DartZone.AvaloniaUI.Views;
 
-public partial class RegisterView : UserControl
+internal sealed partial class RegisterView : UserControl
 {
     public RegisterView()
     {

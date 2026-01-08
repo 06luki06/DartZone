@@ -14,272 +14,310 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace At.luki0606.DartZone.Tests.API.Controllers
+namespace At.luki0606.DartZone.Tests.API.Controllers;
+
+[TestFixture]
+internal sealed class GamesControllerTest
 {
-    [TestFixture]
-    public class GamesControllerTest
+    private GamesController _gameController;
+    private AuthController _authController;
+    private DartZoneDbContext _dbContext;
+
+    [SetUp]
+    public void Setup()
     {
-        private GamesController _gameController;
-        private AuthController _authController;
-        private DartZoneDbContext _dbContext;
+        _dbContext = HelperMethods.CreateDbContext();
+        IServiceProvider serviceProvider = HelperMethods.CreateServiceProvider();
 
-        [SetUp]
-        public void Setup()
+        ValidatorFactory validatorFactory = new(serviceProvider);
+        DtoMapperFactory mapperFactory = new(serviceProvider);
+
+        _gameController = new(_dbContext, mapperFactory, validatorFactory);
+        _authController = new(_dbContext, validatorFactory, mapperFactory);
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        if (_dbContext is IDisposable disposable)
         {
-            _dbContext = HelperMethods.CreateDbContext();
-            IServiceProvider serviceProvider = HelperMethods.CreateServiceProvider();
-
-            ValidatorFactory validatorFactory = new(serviceProvider);
-            DtoMapperFactory mapperFactory = new(serviceProvider);
-
-            _gameController = new(_dbContext, mapperFactory, validatorFactory);
-            _authController = new(_dbContext, validatorFactory, mapperFactory);
+            disposable.Dispose();
         }
+    }
 
-        [TearDown]
-        public void TearDown()
+    [Test]
+    public async Task AddGame_ShouldReturnCreated_WhenUserIsAuthenticated()
+    {
+        UserRequestDto dto = new()
         {
-            if (_dbContext is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-        }
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-        [Test]
-        public async Task AddGame_ShouldReturnCreated_WhenUserIsAuthenticated()
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+        IActionResult result = await _gameController.AddGame().ConfigureAwait(false);
+        result.Should().BeOfType<CreatedAtActionResult>();
+        CreatedAtActionResult createdResult = result as CreatedAtActionResult;
+        createdResult.Value.Should().BeOfType<GameResponseDto>();
+    }
+
+    [Test]
+    public async Task AddGame_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    {
+        _gameController.ControllerContext = new ControllerContext
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
+        };
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+        IActionResult result = await _gameController.AddGame().ConfigureAwait(false);
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+        UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
+        unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-            IActionResult result = await _gameController.AddGame();
-            result.Should().BeOfType<CreatedAtActionResult>();
-            CreatedAtActionResult createdResult = result as CreatedAtActionResult;
-            createdResult.Value.Should().BeOfType<GameResponseDto>();
-        }
-
-        [Test]
-        public async Task AddGame_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    [Test]
+    public async Task AddGame_ShouldReturnBadRequest_WhenInvalidUserId()
+    {
+        UserRequestDto dto = new()
         {
-            _gameController.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
-            };
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-            IActionResult result = await _gameController.AddGame();
-            result.Should().BeOfType<UnauthorizedObjectResult>();
-            UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
-            unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
 
-        [Test]
-        public async Task AddGame_ShouldReturnBadRequest_WhenInvalidUserId()
+        _gameController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
+            new ClaimsIdentity(
+            [
+                new(ClaimTypes.NameIdentifier, "invalid-id"),
+                new(ClaimTypes.Name, user.Username)
+            ], "TestAuth"));
+
+        IActionResult result = await _gameController.AddGame().ConfigureAwait(false);
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+        UnauthorizedObjectResult badRequestResult = result as UnauthorizedObjectResult;
+        badRequestResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
+
+    [Test]
+    public async Task GetGames_ShouldReturnOk_WhenUserIsAuthenticated()
+    {
+        UserRequestDto dto = new()
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
 
-            _gameController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                [
-                    new(ClaimTypes.NameIdentifier, "invalid-id"),
-                    new(ClaimTypes.Name, user.Username)
-                ], "TestAuth"));
+        await _gameController.AddGame().ConfigureAwait(false);
+        IActionResult result = await _gameController.GetGames().ConfigureAwait(false);
+        result.Should().BeOfType<OkObjectResult>();
+        OkObjectResult okResult = result as OkObjectResult;
+        okResult.Value.Should().BeOfType<List<GameResponseDto>>();
+        List<GameResponseDto> games = okResult.Value as List<GameResponseDto>;
+        games.Should().HaveCount(1);
+    }
 
-            IActionResult result = await _gameController.AddGame();
-            result.Should().BeOfType<UnauthorizedObjectResult>();
-            UnauthorizedObjectResult badRequestResult = result as UnauthorizedObjectResult;
-            badRequestResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
-
-        [Test]
-        public async Task GetGames_ShouldReturnOk_WhenUserIsAuthenticated()
+    [Test]
+    public async Task GetGames_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    {
+        _gameController.ControllerContext = new ControllerContext
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
+        };
+        IActionResult result = await _gameController.GetGames().ConfigureAwait(false);
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+        UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
+        unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
-
-            await _gameController.AddGame();
-            IActionResult result = await _gameController.GetGames();
-            result.Should().BeOfType<OkObjectResult>();
-            OkObjectResult okResult = result as OkObjectResult;
-            okResult.Value.Should().BeOfType<List<GameResponseDto>>();
-            List<GameResponseDto> games = okResult.Value as List<GameResponseDto>;
-            games.Should().HaveCount(1);
-        }
-
-        [Test]
-        public async Task GetGames_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    [Test]
+    public async Task GetGame_ShouldReturnGame_WhenGameExists()
+    {
+        UserRequestDto dto = new()
         {
-            _gameController.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
-            };
-            IActionResult result = await _gameController.GetGames();
-            result.Should().BeOfType<UnauthorizedObjectResult>();
-            UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
-            unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-        [Test]
-        public async Task GetGame_ShouldReturnGame_WhenGameExists()
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+        IActionResult addedGameResult = await _gameController.AddGame().ConfigureAwait(false);
+        GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
+        IActionResult result = await _gameController.GetGame(addedGame.Id).ConfigureAwait(false);
+        result.Should().BeOfType<OkObjectResult>();
+        OkObjectResult okResult = result as OkObjectResult;
+        okResult.Value.Should().BeOfType<GameResponseDto>();
+        GameResponseDto game = okResult.Value as GameResponseDto;
+        game.Id.Should().Be(addedGame.Id);
+    }
+
+    [Test]
+    public async Task GetGame_ShouldReturnNotFound_WhenGameDoesNotExist()
+    {
+        UserRequestDto dto = new()
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
 
-            IActionResult addedGameResult = await _gameController.AddGame();
-            GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
-            IActionResult result = await _gameController.GetGame(addedGame.Id);
-            result.Should().BeOfType<OkObjectResult>();
-            OkObjectResult okResult = result as OkObjectResult;
-            okResult.Value.Should().BeOfType<GameResponseDto>();
-            GameResponseDto game = okResult.Value as GameResponseDto;
-            game.Id.Should().Be(addedGame.Id);
-        }
+        IActionResult result = await _gameController.GetGame(Guid.NewGuid()).ConfigureAwait(false);
+        result.Should().BeOfType<NotFoundObjectResult>();
+        NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
+        notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-        [Test]
-        public async Task GetGame_ShouldReturnNotFound_WhenGameDoesNotExist()
+    [Test]
+    public async Task GetGame_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    {
+        _gameController.ControllerContext = new ControllerContext
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
+        };
+        IActionResult result = await _gameController.GetGame(Guid.NewGuid()).ConfigureAwait(false);
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+        UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
+        unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
-
-            IActionResult result = await _gameController.GetGame(Guid.NewGuid());
-            result.Should().BeOfType<NotFoundObjectResult>();
-            NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
-            notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
-
-        [Test]
-        public async Task GetGame_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    [Test]
+    public async Task DeleteGame_ShouldReturnNoContent_WhenRequestIsValid()
+    {
+        UserRequestDto dto = new()
         {
-            _gameController.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
-            };
-            IActionResult result = await _gameController.GetGame(Guid.NewGuid());
-            result.Should().BeOfType<UnauthorizedObjectResult>();
-            UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
-            unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-        [Test]
-        public async Task DeleteGame_ShouldReturnNoContent_WhenRequestIsValid()
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+        IActionResult addedGameResult = await _gameController.AddGame().ConfigureAwait(false);
+        GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
+        IActionResult result = await _gameController.DeleteGame(addedGame.Id).ConfigureAwait(false);
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Test]
+    public async Task DeleteGame_ShouldReturnNotFound_WhenGameDoesNotExist()
+    {
+        UserRequestDto dto = new()
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
 
-            IActionResult addedGameResult = await _gameController.AddGame();
-            GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
-            IActionResult result = await _gameController.DeleteGame(addedGame.Id);
-            result.Should().BeOfType<NoContentResult>();
-        }
+        IActionResult result = await _gameController.DeleteGame(Guid.NewGuid()).ConfigureAwait(false);
+        result.Should().BeOfType<NotFoundObjectResult>();
+        NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
+        notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-        [Test]
-        public async Task DeleteGame_ShouldReturnNotFound_WhenGameDoesNotExist()
+    [Test]
+    public async Task DeleteGame_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    {
+        _gameController.ControllerContext = new ControllerContext
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
+        };
+        IActionResult result = await _gameController.DeleteGame(Guid.NewGuid()).ConfigureAwait(false);
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+        UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
+        unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
-
-            IActionResult result = await _gameController.DeleteGame(Guid.NewGuid());
-            result.Should().BeOfType<NotFoundObjectResult>();
-            NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
-            notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
-
-        [Test]
-        public async Task DeleteGame_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    [Test]
+    public async Task AddThrow_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    {
+        _gameController.ControllerContext = new ControllerContext
         {
-            _gameController.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
-            };
-            IActionResult result = await _gameController.DeleteGame(Guid.NewGuid());
-            result.Should().BeOfType<UnauthorizedObjectResult>();
-            UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
-            unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
+        };
+        IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), new ThrowRequestDto()).ConfigureAwait(false);
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+        UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
+        unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-        [Test]
-        public async Task AddThrow_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+    [Test]
+    public async Task AddThrow_ShouldReturnBadRequest_WhenThrowRequestIsInvalid()
+    {
+        UserRequestDto dto = new()
         {
-            _gameController.ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal() }
-            };
-            IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), new ThrowRequestDto());
-            result.Should().BeOfType<UnauthorizedObjectResult>();
-            UnauthorizedObjectResult unauthorizedResult = result as UnauthorizedObjectResult;
-            unauthorizedResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-        [Test]
-        public async Task AddThrow_ShouldReturnBadRequest_WhenThrowRequestIsInvalid()
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+
+        ThrowRequestDto invalidThrow = new();
+        invalidThrow.Dart1.Field = -3;
+
+        IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), invalidThrow).ConfigureAwait(false);
+        result.Should().BeOfType<BadRequestObjectResult>();
+        BadRequestObjectResult badRequestResult = result as BadRequestObjectResult;
+        badRequestResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
+
+    [Test]
+    public async Task AddThrow_ShouldReturnNotFound_WhenGameNotFound()
+    {
+        UserRequestDto dto = new()
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
 
+        IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), new ThrowRequestDto()).ConfigureAwait(false);
+        result.Should().BeOfType<NotFoundObjectResult>();
+        NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
+        notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
+    }
 
-            ThrowRequestDto invalidThrow = new();
-            invalidThrow.Dart1.Field = -3;
-
-            IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), invalidThrow);
-            result.Should().BeOfType<BadRequestObjectResult>();
-            BadRequestObjectResult badRequestResult = result as BadRequestObjectResult;
-            badRequestResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
-
-        [Test]
-        public async Task AddThrow_ShouldReturnNotFound_WhenGameNotFound()
+    [Test]
+    public async Task AddThrow_ShouldReturnCreatedAd_WhenThrowIsAddedSuccessfully()
+    {
+        UserRequestDto dto = new()
         {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
+            Username = "testuser",
+            Password = "Secure123!"
+        };
+        await _authController.Register(dto).ConfigureAwait(false);
 
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
+        User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
 
-            IActionResult result = await _gameController.AddThrow(Guid.NewGuid(), new ThrowRequestDto());
-            result.Should().BeOfType<NotFoundObjectResult>();
-            NotFoundObjectResult notFoundResult = result as NotFoundObjectResult;
-            notFoundResult.Value.Should().BeOfType<MessageResponseDto>();
-        }
+        IActionResult addedGameResult = await _gameController.AddGame().ConfigureAwait(false);
+        GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
 
-        [Test]
-        public async Task AddThrow_ShouldReturnCreatedAd_WhenThrowIsAddedSuccessfully()
-        {
-            UserRequestDto dto = new() { Username = "testuser", Password = "Secure123!" };
-            await _authController.Register(dto);
-
-            User user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            _gameController.ControllerContext = HelperMethods.CreateControllerContext(user);
-
-            IActionResult addedGameResult = await _gameController.AddGame();
-            GameResponseDto addedGame = (addedGameResult as CreatedAtActionResult).Value as GameResponseDto;
-
-            IActionResult result = await _gameController.AddThrow(addedGame.Id, new ThrowRequestDto());
-            result.Should().BeOfType<CreatedAtActionResult>();
-            CreatedAtActionResult actionResult = result as CreatedAtActionResult;
-            actionResult.Value.Should().BeOfType<ThrowResponseDto>();
-        }
+        IActionResult result = await _gameController.AddThrow(addedGame.Id, new ThrowRequestDto()).ConfigureAwait(false);
+        result.Should().BeOfType<CreatedAtActionResult>();
+        CreatedAtActionResult actionResult = result as CreatedAtActionResult;
+        actionResult.Value.Should().BeOfType<ThrowResponseDto>();
     }
 }

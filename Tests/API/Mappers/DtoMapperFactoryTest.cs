@@ -7,52 +7,51 @@ using At.luki0606.DartZone.Shared.Results;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace At.luki0606.DartZone.Tests.API.Mappers
+namespace At.luki0606.DartZone.Tests.API.Mappers;
+
+[TestFixture]
+internal sealed class DtoMapperFactoryTest
 {
-    [TestFixture]
-    public class DtoMapperFactoryTest
+    private DtoMapperFactory _mapperFactory;
+    private IServiceProvider _serviceProvider;
+
+    [SetUp]
+    public void SetUp()
     {
-        private DtoMapperFactory _mapperFactory;
-        private IServiceProvider _serviceProvider;
+        IServiceCollection services = new ServiceCollection();
+        services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
+        services.AddScoped<IDtoMapperFactory, DtoMapperFactory>();
+        _serviceProvider = services.BuildServiceProvider();
+        _mapperFactory = new DtoMapperFactory(_serviceProvider);
+    }
 
-        [SetUp]
-        public void SetUp()
+    [TearDown]
+    public void TearDown()
+    {
+        if (_serviceProvider is IDisposable disposable)
         {
-            IServiceCollection services = new ServiceCollection();
-            services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
-            services.AddScoped<IDtoMapperFactory, DtoMapperFactory>();
-            _serviceProvider = services.BuildServiceProvider();
-            _mapperFactory = new DtoMapperFactory(_serviceProvider);
+            disposable.Dispose();
         }
+    }
 
-        [TearDown]
-        public void TearDown()
-        {
-            if (_serviceProvider is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-        }
+    [Test]
+    public void Ctor_ServiceProviderIsNull_ShallThrowArgumentException()
+    {
+        FluentActions.Invoking(() => new DtoMapperFactory(null))
+            .Should().Throw<ArgumentNullException>();
+    }
 
-        [Test]
-        public void Ctor_ServiceProviderIsNull_ShallThrowArgumentException()
-        {
-            FluentActions.Invoking(() => new DtoMapperFactory(null))
-                .Should().Throw<ArgumentNullException>();
-        }
+    [Test]
+    public void GetValidator_ValidType_ShallReturnValidator()
+    {
+        Result<IDtoMapper<Dart, DartResponseDto>> validatorResult = _mapperFactory.GetMapper<Dart, DartResponseDto>();
+        validatorResult.IsSuccess.Should().BeTrue();
+    }
 
-        [Test]
-        public void GetValidator_ValidType_ShallReturnValidator()
-        {
-            Result<IDtoMapper<Dart, DartResponseDto>> validatorResult = _mapperFactory.GetMapper<Dart, DartResponseDto>();
-            validatorResult.IsSuccess.Should().BeTrue();
-        }
-
-        [Test]
-        public void GetValidator_InvalidType_ShallThrowInvalidOperationException()
-        {
-            Result<IDtoMapper<string, DartResponseDto>> validator = _mapperFactory.GetMapper<string, DartResponseDto>();
-            validator.IsFailure.Should().BeTrue();
-        }
+    [Test]
+    public void GetValidator_InvalidType_ShallThrowInvalidOperationException()
+    {
+        Result<IDtoMapper<string, DartResponseDto>> validator = _mapperFactory.GetMapper<string, DartResponseDto>();
+        validator.IsFailure.Should().BeTrue();
     }
 }

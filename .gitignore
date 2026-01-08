@@ -10,3 +10,4 @@ coveragereport
 API/appsettings*.json
 !API/appsettings-template.json
 **/Properties/launchSettings.json
+**/TestResults/

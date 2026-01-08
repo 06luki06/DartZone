@@ -16,121 +16,135 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace At.luki0606.DartZone.API.Controllers
+namespace At.luki0606.DartZone.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+internal class AuthController : BaseController
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController : BaseController
+    public AuthController(DartZoneDbContext db, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
+        : base(db, mapperFactory, validatorFactory)
     {
-        public AuthController(DartZoneDbContext db, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
-            : base(db, mapperFactory, validatorFactory)
+    }
+
+    #region POST
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(UserRequestDto dto)
+    {
+        if (dto == null)
         {
+            return BadRequest(new MessageResponseDto() { Message = Phrases.AnErrocOccured });
         }
 
-        #region POST
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(UserRequestDto dto)
+        ValidationResult validationResult = await _validationFactory
+            .GetValidator<UserRequestDto>().Value.ValidateAsync(dto)
+            .ConfigureAwait(false);
+
+        if (!validationResult.IsValid)
         {
-            ValidationResult validationResult = await _validationFactory.GetValidator<UserRequestDto>().Value.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(ValidationResultHelper.GetFirstErrorMessage(validationResult));
-            }
-
-            if (await _db.Users.AnyAsync(u => u.Username == dto.Username))
-            {
-                return BadRequest(new MessageResponseDto() { Message = Phrases.INVALID_USERNAME_OR_PASSWORD });
-            }
-
-            (byte[] hash, byte[] salt) = PasswordHasherService.HashPassword(dto.Password);
-
-            User user = new(dto.Username, hash, salt);
-
-            _db.Users.Add(user);
-            try
-            {
-                await _db.SaveChangesAsync();
-                TokenResponseDto token = new()
-                {
-                    Token = JwtService.GenerateToken(user)
-                };
-                return Created(nameof(GetCurrentUser), token);
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new MessageResponseDto() { Message = Phrases.AN_ERROR_OCCURRED });
-            }
+            return BadRequest(ValidationResultHelper.GetFirstErrorMessage(validationResult));
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> Login(UserRequestDto dto)
+        if (await _db.Users.AnyAsync(u => u.Username == dto.Username).ConfigureAwait(false))
         {
-            ValidationResult validationResult = await _validationFactory.GetValidator<UserRequestDto>().Value.ValidateAsync(dto);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(ValidationResultHelper.GetFirstErrorMessage(validationResult));
-            }
+            return BadRequest(new MessageResponseDto() { Message = Phrases.InvalidUsernameOrPassword });
+        }
 
-            User user = await _db.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null)
-            {
-                return Unauthorized(new MessageResponseDto() { Message = Phrases.INVALID_USERNAME_OR_PASSWORD });
-            }
+        (byte[] hash, byte[] salt) = PasswordHasherService.HashPassword(dto.Password);
 
-            using HMACSHA512 hmac = new(user.PasswordSalt);
-            if (PasswordHasherService.VerifyPassword(dto.Password, user.PasswordHash, user.PasswordSalt).IsFailure)
-            {
-                return Unauthorized(new MessageResponseDto() { Message = Phrases.INVALID_USERNAME_OR_PASSWORD });
-            }
+        User user = new(dto.Username, hash, salt);
 
+        _db.Users.Add(user);
+#pragma warning disable CA1031 // Do not catch general exception types
+        try
+        {
+            await _db.SaveChangesAsync().ConfigureAwait(false);
             TokenResponseDto token = new()
             {
                 Token = JwtService.GenerateToken(user)
             };
-            return Ok(token);
+            return CreatedAtAction(nameof(GetCurrentUser), token);
         }
-        #endregion
-
-        #region GET
-        [Authorize]
-        [HttpGet("me")]
-        public async Task<IActionResult> GetCurrentUser()
+        catch (Exception)
         {
-            Result<User> userResult = await GetAuthenticatedUser();
-            if (userResult.IsFailure)
-            {
-                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
-            }
-            User user = userResult.Value;
-
-            UserResponseDto userResponse = _dtoMapperFactory.GetMapper<User, UserResponseDto>().Value.Map(user);
-            return Ok(userResponse);
+            return StatusCode(500, new MessageResponseDto() { Message = Phrases.AnErrocOccured });
         }
-        #endregion
-
-        #region DELETE
-        [Authorize]
-        [HttpDelete("delete")]
-        public async Task<IActionResult> DeleteUser()
-        {
-            Result<User> userResult = await GetAuthenticatedUser();
-            if (userResult.IsFailure)
-            {
-                return Unauthorized(new MessageResponseDto() { Message = Phrases.USER_NOT_AUTHENTICATED });
-            }
-            User user = userResult.Value;
-
-            _db.Users.Remove(user);
-            try
-            {
-                await _db.SaveChangesAsync();
-                return NoContent();
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new MessageResponseDto() { Message = Phrases.AN_ERROR_OCCURRED });
-            }
-        }
-        #endregion
+#pragma warning restore CA1031 // Do not catch general exception types
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(UserRequestDto dto)
+    {
+        ValidationResult validationResult = await _validationFactory
+            .GetValidator<UserRequestDto>().Value.ValidateAsync(dto)
+            .ConfigureAwait(false);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(ValidationResultHelper.GetFirstErrorMessage(validationResult));
+        }
+
+        User user = await _db.Users.FirstOrDefaultAsync(u => u.Username == dto.Username).ConfigureAwait(false);
+        if (user == null)
+        {
+            return Unauthorized(new MessageResponseDto() { Message = Phrases.InvalidUsernameOrPassword });
+        }
+
+        using HMACSHA512 hmac = new(user.PasswordSalt);
+        if (PasswordHasherService.VerifyPassword(dto.Password, user.PasswordHash, user.PasswordSalt).IsFailure)
+        {
+            return Unauthorized(new MessageResponseDto() { Message = Phrases.InvalidUsernameOrPassword });
+        }
+
+        TokenResponseDto token = new()
+        {
+            Token = JwtService.GenerateToken(user)
+        };
+        return Ok(token);
+    }
+    #endregion
+
+    #region GET
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        Result<User> userResult = await GetAuthenticatedUser().ConfigureAwait(false);
+        if (userResult.IsFailure)
+        {
+            return Unauthorized(new MessageResponseDto() { Message = Phrases.UserNotAuthenticated });
+        }
+        User user = userResult.Value;
+
+        UserResponseDto userResponse = _dtoMapperFactory.GetMapper<User, UserResponseDto>().Value.Map(user);
+        return Ok(userResponse);
+    }
+    #endregion
+
+    #region DELETE
+    [Authorize]
+    [HttpDelete("delete")]
+    public async Task<IActionResult> DeleteUser()
+    {
+        Result<User> userResult = await GetAuthenticatedUser().ConfigureAwait(false);
+        if (userResult.IsFailure)
+        {
+            return Unauthorized(new MessageResponseDto() { Message = Phrases.UserNotAuthenticated });
+        }
+        User user = userResult.Value;
+
+        _db.Users.Remove(user);
+#pragma warning disable CA1031 // Do not catch general exception types
+        try
+        {
+            await _db.SaveChangesAsync().ConfigureAwait(false);
+            return NoContent();
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new MessageResponseDto() { Message = Phrases.AnErrocOccured });
+        }
+#pragma warning restore CA1031 // Do not catch general exception types
+    }
+    #endregion
 }

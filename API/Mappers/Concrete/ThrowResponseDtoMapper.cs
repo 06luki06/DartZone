@@ -2,24 +2,23 @@
 using At.luki0606.DartZone.API.Models;
 using At.luki0606.DartZone.Shared.Dtos.Responses;
 
-namespace At.luki0606.DartZone.API.Mappers.Concrete
+namespace At.luki0606.DartZone.API.Mappers.Concrete;
+
+internal class ThrowResponseDtoMapper : IDtoMapper<Throw, ThrowResponseDto>
 {
-    public class ThrowResponseDtoMapper : IDtoMapper<Throw, ThrowResponseDto>
+    private readonly IDtoMapper<Dart, DartResponseDto> _dartMapper;
+
+    public ThrowResponseDtoMapper(IDtoMapper<Dart, DartResponseDto> dartMapper)
     {
-        private readonly IDtoMapper<Dart, DartResponseDto> _dartMapper;
+        _dartMapper = dartMapper;
+    }
 
-        public ThrowResponseDtoMapper(IDtoMapper<Dart, DartResponseDto> dartMapper)
+    public ThrowResponseDto Map(Throw entity)
+    {
+        return new ThrowResponseDto
         {
-            _dartMapper = dartMapper;
-        }
-
-        public ThrowResponseDto Map(Throw entity)
-        {
-            return new ThrowResponseDto
-            {
-                Id = entity.Id,
-                Darts = [.. entity.Darts.Select(_dartMapper.Map)],
-            };
-        }
+            Id = entity.Id,
+            Darts = [.. entity.Darts.Select(_dartMapper.Map)],
+        };
     }
 }

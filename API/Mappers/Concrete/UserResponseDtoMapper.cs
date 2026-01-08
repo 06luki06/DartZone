@@ -1,17 +1,16 @@
 ﻿using At.luki0606.DartZone.API.Models;
 using At.luki0606.DartZone.Shared.Dtos.Responses;
 
-namespace At.luki0606.DartZone.API.Mappers.Concrete
+namespace At.luki0606.DartZone.API.Mappers.Concrete;
+
+internal class UserResponseDtoMapper : IDtoMapper<User, UserResponseDto>
 {
-    public class UserResponseDtoMapper : IDtoMapper<User, UserResponseDto>
+    public UserResponseDto Map(User entity)
     {
-        public UserResponseDto Map(User entity)
+        return new UserResponseDto
         {
-            return new UserResponseDto
-            {
-                Id = entity.Id,
-                Username = entity.Username
-            };
-        }
+            Id = entity.Id,
+            Username = entity.Username
+        };
     }
 }
