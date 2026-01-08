@@ -5,33 +5,32 @@ using At.luki0606.DartZone.AvaloniaUI.Views;
 using At.luki0606.DartZone.Shared.Dtos.Requests;
 using Prism.Navigation.Regions;
 
-namespace At.luki0606.DartZone.AvaloniaUI.ViewModels
+namespace At.luki0606.DartZone.AvaloniaUI.ViewModels;
+
+internal sealed class RegisterViewModel : AAuthViewModel
 {
-    public class RegisterViewModel : AAuthViewModel
+    public RegisterViewModel(IRegionManager regionManager, IAuthService authService)
+        : base(regionManager, nameof(LoginView), authService)
     {
-        public RegisterViewModel(IRegionManager regionManager, IAuthService authService)
-            : base(regionManager, nameof(LoginView), authService)
+    }
+
+    protected override async Task OnSubmit()
+    {
+        UserRequestDto dto = new()
         {
+            Username = Username,
+            Password = Password
+        };
+
+        bool success = await AuthService.RegisterAsync(dto).ConfigureAwait(true);
+
+        if (success)
+        {
+            RegionManager.RequestNavigate(RegionNames.ContentRegion, nameof(GamesView));
         }
-
-        protected override async Task OnSubmit()
+        else
         {
-            UserRequestDto dto = new()
-            {
-                Username = Username,
-                Password = Password
-            };
-
-            bool success = await AuthService.RegisterAsync(dto);
-
-            if (success)
-            {
-                RegionManager.RequestNavigate(RegionNames.CONTENT_REGION, nameof(GamesView));
-            }
-            else
-            {
-                // Handle login failure (e.g., show error message)
-            }
+            // Handle login failure (e.g., show error message)
         }
     }
 }

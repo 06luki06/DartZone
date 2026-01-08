@@ -1,7 +1,6 @@
-﻿namespace At.luki0606.DartZone.AvaloniaUI.Utils
+﻿namespace At.luki0606.DartZone.AvaloniaUI.Utils;
+
+internal static class RegionNames
 {
-    public static class RegionNames
-    {
-        public const string CONTENT_REGION = "ContentRegion";
-    }
+    public const string ContentRegion = "ContentRegion";
 }

@@ -1,10 +1,8 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+﻿using Avalonia.Controls;
 
 namespace At.luki0606.DartZone.AvaloniaUI.Views;
 
-public partial class GamesView : UserControl
+internal sealed partial class GamesView : UserControl
 {
     public GamesView()
     {

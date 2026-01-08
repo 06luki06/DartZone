@@ -1,9 +1,8 @@
 ﻿using Prism.Mvvm;
 
-namespace At.luki0606.DartZone.AvaloniaUI.ViewModels
+namespace At.luki0606.DartZone.AvaloniaUI.ViewModels;
+
+internal sealed class MainWindowViewModel : BindableBase
 {
-    public class MainWindowViewModel : BindableBase
-    {
-        public string Title { get; } = "DartZone";
-    }
+    public string Title { get; } = "DartZone";
 }

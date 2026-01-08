@@ -16,90 +16,89 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
-namespace At.luki0606.DartZone.API
+namespace At.luki0606.DartZone.API;
+
+internal static class Program
 {
-    public static class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-            AddDbContext(builder);
-            AddAuthentication(builder);
-            AddValidators(builder);
-            AddDtoMappers(builder);
+        AddDbContext(builder);
+        AddAuthentication(builder);
+        AddValidators(builder);
+        AddDtoMappers(builder);
 
-            builder.Services.AddControllers()
-               .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
-                });
-
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            WebApplication app = builder.Build();
-
-            if (app.Environment.IsDevelopment())
+        builder.Services.AddControllers()
+           .AddJsonOptions(options =>
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.PropertyNamingPolicy = null;
+            });
 
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.MapControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
-            app.Run();
+        WebApplication app = builder.Build();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
 
-        private static void AddDbContext(WebApplicationBuilder builder)
-        {
-            builder.Services.AddDbContext<DartZoneDbContext>(options =>
-                options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-        }
+        app.UseHttpsRedirection();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.MapControllers();
 
-        private static void AddAuthentication(WebApplicationBuilder builder)
-        {
-            string key = Environment.GetEnvironmentVariable("JWT_KEY");
-            byte[] keyBytes = System.Text.Encoding.UTF8.GetBytes(key);
+        app.Run();
+    }
 
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+    private static void AddDbContext(WebApplicationBuilder builder)
+    {
+        builder.Services.AddDbContext<DartZoneDbContext>(options =>
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    }
+
+    private static void AddAuthentication(WebApplicationBuilder builder)
+    {
+        string key = Environment.GetEnvironmentVariable("JWT_KEY");
+        byte[] keyBytes = System.Text.Encoding.UTF8.GetBytes(key);
+
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
-                        IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
-                    };
-                });
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                    IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
+                };
+            });
 
-            builder.Services.AddAuthorization();
-        }
+        builder.Services.AddAuthorization();
+    }
 
-        private static void AddValidators(WebApplicationBuilder builder)
-        {
-            builder.Services.AddScoped<IValidator<UserRequestDto>, UserRequestDtoValidator>();
-            builder.Services.AddScoped<IValidator<DartRequestDto>, DartRequestDtoValidator>();
-            builder.Services.AddScoped<IValidator<ThrowRequestDto>, ThrowRequestDtoValidator>();
+    private static void AddValidators(WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IValidator<UserRequestDto>, UserRequestDtoValidator>();
+        builder.Services.AddScoped<IValidator<DartRequestDto>, DartRequestDtoValidator>();
+        builder.Services.AddScoped<IValidator<ThrowRequestDto>, ThrowRequestDtoValidator>();
 
-            builder.Services.AddScoped<Validators.IValidatorFactory, ValidatorFactory>();
-        }
+        builder.Services.AddScoped<Validators.IValidatorFactory, ValidatorFactory>();
+    }
 
-        private static void AddDtoMappers(WebApplicationBuilder builder)
-        {
-            builder.Services.AddScoped<IDtoMapper<User, UserResponseDto>, UserResponseDtoMapper>();
-            builder.Services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
-            builder.Services.AddScoped<IDtoMapper<Throw, ThrowResponseDto>, ThrowResponseDtoMapper>();
-            builder.Services.AddScoped<IDtoMapper<Game, GameResponseDto>, GameResponseDtoMapper>();
+    private static void AddDtoMappers(WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IDtoMapper<User, UserResponseDto>, UserResponseDtoMapper>();
+        builder.Services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
+        builder.Services.AddScoped<IDtoMapper<Throw, ThrowResponseDto>, ThrowResponseDtoMapper>();
+        builder.Services.AddScoped<IDtoMapper<Game, GameResponseDto>, GameResponseDtoMapper>();
 
-            builder.Services.AddScoped<IDtoMapperFactory, DtoMapperFactory>();
-        }
+        builder.Services.AddScoped<IDtoMapperFactory, DtoMapperFactory>();
     }
 }

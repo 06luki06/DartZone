@@ -1,9 +1,8 @@
-﻿namespace At.luki0606.DartZone.API.Mappers
+﻿namespace At.luki0606.DartZone.API.Mappers;
+
+internal interface IDtoMapper<in TEntity, out TDto>
+    where TEntity : class
+    where TDto : class
 {
-    public interface IDtoMapper<in TEntity, out TDto>
-        where TEntity : class
-        where TDto : class
-    {
-        TDto Map(TEntity entity);
-    }
+    TDto Map(TEntity entity);
 }

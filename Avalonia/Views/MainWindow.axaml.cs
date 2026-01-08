@@ -2,7 +2,7 @@
 
 namespace At.luki0606.DartZone.AvaloniaUI.Views;
 
-public partial class MainWindow : Window
+internal sealed partial class MainWindow : Window
 {
     public MainWindow()
     {

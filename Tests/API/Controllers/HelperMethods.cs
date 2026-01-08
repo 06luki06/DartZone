@@ -15,54 +15,55 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace At.luki0606.DartZone.Tests.API.Controllers
+namespace At.luki0606.DartZone.Tests.API.Controllers;
+
+internal static class HelperMethods
 {
-    public static class HelperMethods
+    internal static ControllerContext CreateControllerContext(User user)
     {
-        internal static ControllerContext CreateControllerContext(User user)
+        List<Claim> claims =
+        [
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Name, user.Username)
+        ];
+
+        ClaimsIdentity identity = new(claims, "TestAuth");
+        ClaimsPrincipal principal = new(identity);
+
+        return new ControllerContext
         {
-            List<Claim> claims =
-            [
-                new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new(ClaimTypes.Name, user.Username)
-            ];
+            HttpContext = new DefaultHttpContext { User = principal }
+        };
+    }
 
-            ClaimsIdentity identity = new(claims, "TestAuth");
-            ClaimsPrincipal principal = new(identity);
+    internal static DartZoneDbContext CreateDbContext()
+    {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+        SqliteConnection connection = new("DataSource=:memory:");
+#pragma warning restore CA2000 // Dispose objects before losing scope
+        connection.Open();
 
-            return new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext { User = principal }
-            };
-        }
+        DbContextOptions<DartZoneDbContext> options = new DbContextOptionsBuilder<DartZoneDbContext>()
+            .UseSqlite(connection)
+            .Options;
 
-        internal static DartZoneDbContext CreateDbContext()
-        {
-            SqliteConnection connection = new("DataSource=:memory:");
-            connection.Open();
+        DartZoneDbContext context = new(options);
+        context.Database.EnsureCreated();
+        return context;
+    }
 
-            DbContextOptions<DartZoneDbContext> options = new DbContextOptionsBuilder<DartZoneDbContext>()
-                .UseSqlite(connection)
-                .Options;
+    internal static IServiceProvider CreateServiceProvider()
+    {
+        IServiceCollection services = new ServiceCollection();
+        services.AddScoped<IValidator<UserRequestDto>, UserRequestDtoValidator>();
+        services.AddScoped<IValidator<DartRequestDto>, DartRequestDtoValidator>();
+        services.AddScoped<IValidator<ThrowRequestDto>, ThrowRequestDtoValidator>();
 
-            DartZoneDbContext context = new(options);
-            context.Database.EnsureCreated();
-            return context;
-        }
+        services.AddScoped<IDtoMapper<User, UserResponseDto>, UserResponseDtoMapper>();
+        services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
+        services.AddScoped<IDtoMapper<Throw, ThrowResponseDto>, ThrowResponseDtoMapper>();
+        services.AddScoped<IDtoMapper<Game, GameResponseDto>, GameResponseDtoMapper>();
 
-        internal static IServiceProvider CreateServiceProvider()
-        {
-            IServiceCollection services = new ServiceCollection();
-            services.AddScoped<IValidator<UserRequestDto>, UserRequestDtoValidator>();
-            services.AddScoped<IValidator<DartRequestDto>, DartRequestDtoValidator>();
-            services.AddScoped<IValidator<ThrowRequestDto>, ThrowRequestDtoValidator>();
-
-            services.AddScoped<IDtoMapper<User, UserResponseDto>, UserResponseDtoMapper>();
-            services.AddScoped<IDtoMapper<Dart, DartResponseDto>, DartResponseDtoMapper>();
-            services.AddScoped<IDtoMapper<Throw, ThrowResponseDto>, ThrowResponseDtoMapper>();
-            services.AddScoped<IDtoMapper<Game, GameResponseDto>, GameResponseDtoMapper>();
-
-            return services.BuildServiceProvider();
-        }
+        return services.BuildServiceProvider();
     }
 }

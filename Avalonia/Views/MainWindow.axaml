@@ -18,5 +18,5 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <ContentControl prism:RegionManager.RegionName="{x:Static utils:RegionNames.CONTENT_REGION}" />
+    <ContentControl prism:RegionManager.RegionName="{x:Static utils:RegionNames.ContentRegion}" />
 </Window>

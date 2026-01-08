@@ -4,58 +4,57 @@ using At.luki0606.DartZone.Shared.Enums;
 using FluentAssertions;
 using FluentValidation.Results;
 
-namespace At.luki0606.DartZone.Tests.API.Validators.Concrete
+namespace At.luki0606.DartZone.Tests.API.Validators.Concrete;
+
+[TestFixture]
+internal sealed class DartRequestDtoValidatorTest
 {
-    [TestFixture]
-    public class DartRequestDtoValidatorTest
+    private DartRequestDtoValidator _validator;
+
+    [SetUp]
+    public void SetUp()
     {
-        private DartRequestDtoValidator _validator;
+        _validator = new DartRequestDtoValidator();
+    }
 
-        [SetUp]
-        public void SetUp()
+    [Test]
+    public void Validate_ValidRequest_ReturnsTrue()
+    {
+        DartRequestDto dartDto = new()
         {
-            _validator = new DartRequestDtoValidator();
-        }
+            Multiplier = (Multiplier)1,
+            Field = 10,
+        };
 
-        [Test]
-        public void Validate_ValidRequest_ReturnsTrue()
+        ValidationResult result = _validator.Validate(dartDto);
+        result.IsValid.Should().BeTrue();
+    }
+
+    [TestCase(0)]
+    [TestCase(4)]
+    public void Validate_InvalidMultiplier_ReturnsFalse(int multiplier)
+    {
+        DartRequestDto dartDto = new()
         {
-            DartRequestDto dartDto = new()
-            {
-                Multiplier = (Multiplier)1,
-                Field = 10,
-            };
+            Multiplier = (Multiplier)multiplier,
+            Field = 10,
+        };
+        ValidationResult result = _validator.Validate(dartDto);
+        result.IsValid.Should().BeFalse();
+    }
 
-            ValidationResult result = _validator.Validate(dartDto);
-            result.IsValid.Should().BeTrue();
-        }
-
-        [TestCase(0)]
-        [TestCase(4)]
-        public void Validate_InvalidMultiplier_ReturnsFalse(int multiplier)
+    [TestCase(21)]
+    [TestCase(24)]
+    [TestCase(26)]
+    [TestCase(-1)]
+    public void Validate_InvalidField_ReturnsFalse(int field)
+    {
+        DartRequestDto dartDto = new()
         {
-            DartRequestDto dartDto = new()
-            {
-                Multiplier = (Multiplier)multiplier,
-                Field = 10,
-            };
-            ValidationResult result = _validator.Validate(dartDto);
-            result.IsValid.Should().BeFalse();
-        }
-
-        [TestCase(21)]
-        [TestCase(24)]
-        [TestCase(26)]
-        [TestCase(-1)]
-        public void Validate_InvalidField_ReturnsFalse(int field)
-        {
-            DartRequestDto dartDto = new()
-            {
-                Multiplier = (Multiplier)1,
-                Field = field,
-            };
-            ValidationResult result = _validator.Validate(dartDto);
-            result.IsValid.Should().BeFalse();
-        }
+            Multiplier = (Multiplier)1,
+            Field = field,
+        };
+        ValidationResult result = _validator.Validate(dartDto);
+        result.IsValid.Should().BeFalse();
     }
 }

@@ -8,43 +8,44 @@ using Prism.DryIoc;
 using Prism.Ioc;
 using Prism.Navigation.Regions;
 
-namespace At.luki0606.DartZone.AvaloniaUI
+namespace At.luki0606.DartZone.AvaloniaUI;
+
+internal sealed partial class App : PrismApplication
 {
-    public partial class App : PrismApplication
+    public override void Initialize()
     {
-        public override void Initialize()
+        AvaloniaXamlLoader.Load(this);
+        base.Initialize();
+    }
+
+    protected override AvaloniaObject CreateShell()
+    {
+        return Container.Resolve<MainWindow>();
+    }
+
+    protected override void RegisterTypes(IContainerRegistry containerRegistry)
+    {
+        containerRegistry.RegisterSingleton<HttpClient>(() => new HttpClient
         {
-            AvaloniaXamlLoader.Load(this);
-            base.Initialize();
-        }
+#pragma warning disable S1075
+            BaseAddress = new System.Uri("http://localhost:5000/api/"),
+#pragma warning restore S1075
+            Timeout = System.TimeSpan.FromSeconds(30)
+        });
 
-        protected override AvaloniaObject CreateShell()
-        {
-            return Container.Resolve<MainWindow>();
-        }
+        containerRegistry.Register<IAuthService, AuthService>();
+    }
 
-        protected override void RegisterTypes(IContainerRegistry containerRegistry)
-        {
-            containerRegistry.RegisterSingleton<HttpClient>(() => new HttpClient
-            {
-                BaseAddress = new System.Uri("http://localhost:5000/api/"),
-                Timeout = System.TimeSpan.FromSeconds(30)
-            });
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
 
-            containerRegistry.Register<IAuthService, AuthService>();
-        }
+        IRegionManager regionManager = this.Container.Resolve<IRegionManager>();
 
-        protected override void OnInitialized()
-        {
-            base.OnInitialized();
+        regionManager.RegisterViewWithRegion(RegionNames.ContentRegion, typeof(LoginView));
+        regionManager.RegisterViewWithRegion(RegionNames.ContentRegion, typeof(RegisterView));
+        regionManager.RegisterViewWithRegion(RegionNames.ContentRegion, typeof(GamesView));
 
-            IRegionManager regionManager = this.Container.Resolve<IRegionManager>();
-
-            regionManager.RegisterViewWithRegion(RegionNames.CONTENT_REGION, typeof(LoginView));
-            regionManager.RegisterViewWithRegion(RegionNames.CONTENT_REGION, typeof(RegisterView));
-            regionManager.RegisterViewWithRegion(RegionNames.CONTENT_REGION, typeof(GamesView));
-
-            regionManager.RequestNavigate(RegionNames.CONTENT_REGION, nameof(LoginView));
-        }
+        regionManager.RequestNavigate(RegionNames.ContentRegion, nameof(LoginView));
     }
 }

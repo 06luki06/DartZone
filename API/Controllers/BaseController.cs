@@ -8,41 +8,35 @@ using At.luki0606.DartZone.API.Validators;
 using At.luki0606.DartZone.Shared.Results;
 using Microsoft.AspNetCore.Mvc;
 
-namespace At.luki0606.DartZone.API.Controllers
+namespace At.luki0606.DartZone.API.Controllers;
+
+internal abstract class BaseController : ControllerBase
 {
-    public abstract class BaseController : ControllerBase
+    protected readonly DartZoneDbContext _db;
+    protected readonly IDtoMapperFactory _dtoMapperFactory;
+    protected readonly IValidatorFactory _validationFactory;
+
+    protected BaseController(DartZoneDbContext db, IDtoMapperFactory dtoMapperFactory, IValidatorFactory validatorFactory)
     {
-        protected readonly DartZoneDbContext _db;
-        protected readonly IDtoMapperFactory _dtoMapperFactory;
-        protected readonly IValidatorFactory _validationFactory;
+        _db = db;
+        _dtoMapperFactory = dtoMapperFactory;
+        _validationFactory = validatorFactory;
+    }
 
-        protected BaseController(DartZoneDbContext db, IDtoMapperFactory dtoMapperFactory, IValidatorFactory validatorFactory)
+    protected async Task<Result<User>> GetAuthenticatedUser()
+    {
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
         {
-            _db = db;
-            _dtoMapperFactory = dtoMapperFactory;
-            _validationFactory = validatorFactory;
+            return Result<User>.Failure("User not authenticated.");
         }
 
-        protected async Task<Result<User>> GetAuthenticatedUser()
+        if (!Guid.TryParse(userId, out Guid parsedUserId))
         {
-            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-            {
-                return Result<User>.Failure("User not authenticated.");
-            }
-
-            if (!Guid.TryParse(userId, out Guid parsedUserId))
-            {
-                return Result<User>.Failure("Invalid user identifier.");
-            }
-
-            User user = await _db.Users.FindAsync(parsedUserId);
-            if (user == null)
-            {
-                return Result<User>.Failure("User not found.");
-            }
-
-            return Result<User>.Success(user);
+            return Result<User>.Failure("Invalid user identifier.");
         }
+
+        User user = await _db.Users.FindAsync(parsedUserId).ConfigureAwait(false);
+        return user == null ? Result<User>.Failure("User not found.") : Result<User>.Success(user);
     }
 }
