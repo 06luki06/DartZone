@@ -5,7 +5,7 @@ using FluentAssertions;
 namespace At.luki0606.DartZone.Tests.Shared.Dtos.Responses
 {
     [TestFixture]
-    public class UserResponseDtoTest
+    internal sealed class UserResponseDtoTest
     {
         private UserResponseDto _userResponseDto;
 

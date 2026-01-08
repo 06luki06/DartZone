@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" /> 
+    <File Path=".editorconfig" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="API/API.csproj" />
+  <Project Path="Avalonia/AvaloniaUI.csproj" />
+  <Project Path="Shared/Shared.csproj" />
+  <Project Path="Tests/Tests.csproj" />
+</Solution>

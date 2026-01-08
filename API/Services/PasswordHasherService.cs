@@ -13,16 +13,14 @@ namespace At.luki0606.DartZone.API.Services
         {
             byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
 
-            using Rfc2898DeriveBytes pbkdf2 = new(password, salt, Iterations, HashAlgorithmName.SHA512);
-            byte[] hash = pbkdf2.GetBytes(HashSize);
+            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA512, HashSize);
 
             return (hash, salt);
         }
 
         public static Result VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
         {
-            using Rfc2898DeriveBytes pbkdf2 = new(password, storedSalt, Iterations, HashAlgorithmName.SHA512);
-            byte[] computedHash = pbkdf2.GetBytes(HashSize);
+            byte[] computedHash = Rfc2898DeriveBytes.Pbkdf2(password, storedSalt, Iterations, HashAlgorithmName.SHA512, HashSize);
 
             return CryptographicOperations.FixedTimeEquals(computedHash, storedHash)
                 ? Result.Success()
