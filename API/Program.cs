@@ -125,7 +125,7 @@ internal sealed class Program
     }
 }
 
-internal class InternalControllerFeatureProvider : ControllerFeatureProvider
+internal sealed class InternalControllerFeatureProvider : ControllerFeatureProvider
 {
     protected override bool IsController(System.Reflection.TypeInfo typeInfo)
     {
