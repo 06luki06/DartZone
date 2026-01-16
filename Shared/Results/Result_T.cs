@@ -2,7 +2,7 @@
 
 namespace At.luki0606.DartZone.Shared.Results;
 
-public class Result<T> : Result
+public sealed class Result<T> : Result
 {
     public T Value => IsSuccess
         ? field!

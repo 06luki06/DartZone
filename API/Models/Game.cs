@@ -4,7 +4,7 @@ using At.luki0606.DartZone.Shared.Results;
 
 namespace At.luki0606.DartZone.API.Models;
 
-internal class Game
+internal sealed class Game
 {
     #region Properties
     public Guid Id { get; private set; }

@@ -20,7 +20,7 @@ namespace At.luki0606.DartZone.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-internal class AuthController : BaseController
+internal sealed class AuthController : BaseController
 {
     public AuthController(DartZoneDbContext db, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
         : base(db, mapperFactory, validatorFactory)

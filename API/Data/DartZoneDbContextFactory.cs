@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace At.luki0606.DartZone.API.Data;
 
-internal class DartZoneDbContextFactory : IDesignTimeDbContextFactory<DartZoneDbContext>
+internal sealed class DartZoneDbContextFactory : IDesignTimeDbContextFactory<DartZoneDbContext>
 {
     public DartZoneDbContext CreateDbContext(string[] args)
     {

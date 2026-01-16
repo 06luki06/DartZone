@@ -4,7 +4,7 @@ using At.luki0606.DartZone.Shared.Dtos.Responses;
 
 namespace At.luki0606.DartZone.API.Mappers.Concrete;
 
-internal class ThrowResponseDtoMapper : IDtoMapper<Throw, ThrowResponseDto>
+internal sealed class ThrowResponseDtoMapper : IDtoMapper<Throw, ThrowResponseDto>
 {
     private readonly IDtoMapper<Dart, DartResponseDto> _dartMapper;
 

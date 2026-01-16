@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace At.luki0606.DartZone.Shared.Dtos.Responses;
 
-public class GameResponseDto
+public sealed class GameResponseDto
 {
     public Guid Id { get; set; } = Guid.Empty;
     public int StartScore

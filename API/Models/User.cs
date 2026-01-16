@@ -2,7 +2,7 @@
 
 namespace At.luki0606.DartZone.API.Models;
 
-internal class User
+internal sealed class User
 {
     #region Properties
     public Guid Id { get; private set; }

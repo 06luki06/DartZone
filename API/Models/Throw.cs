@@ -5,7 +5,7 @@ using At.luki0606.DartZone.Shared.Results;
 
 namespace At.luki0606.DartZone.API.Models;
 
-internal class Throw
+internal sealed class Throw
 {
     #region Properties
     public Guid Id { get; private set; }

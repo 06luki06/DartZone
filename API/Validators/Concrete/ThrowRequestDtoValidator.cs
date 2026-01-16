@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace At.luki0606.DartZone.API.Validators.Concrete;
 
-internal class ThrowRequestDtoValidator : AbstractValidator<ThrowRequestDto>
+internal sealed class ThrowRequestDtoValidator : AbstractValidator<ThrowRequestDto>
 {
     public ThrowRequestDtoValidator()
     {

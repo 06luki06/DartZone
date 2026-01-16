@@ -11,7 +11,7 @@ internal sealed class ValidationResultHelperTest
     [Test]
     public void GetFirstErrorMessage_ValidationResultIsNull_SHouldReturnGenericErrorMessage()
     {
-        ValidationResult validationResult = null;
+        const ValidationResult validationResult = null;
         MessageResponseDto errorMessage = ValidationResultHelper.GetFirstErrorMessage(validationResult);
         errorMessage.Message.Should().Be("Validation failed unintentionally.");
     }

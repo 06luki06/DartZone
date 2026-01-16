@@ -23,7 +23,7 @@ internal sealed class MessageResponseDtoTest
     [Test]
     public void Message_ShouldBeSettable()
     {
-        string message = "Test message";
+        const string message = "Test message";
         _messageResponseDto.Message = message;
         _messageResponseDto.Message.Should().Be(message);
     }

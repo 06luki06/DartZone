@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace At.luki0606.DartZone.API.Mappers;
 
-internal class DtoMapperFactory : IDtoMapperFactory
+internal sealed class DtoMapperFactory : IDtoMapperFactory
 {
     private readonly IServiceProvider _serviceProvider;
 

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace At.luki0606.DartZone.API.Validators;
 
-internal class ValidatorFactory : IValidatorFactory
+internal sealed class ValidatorFactory : IValidatorFactory
 {
     private readonly IServiceProvider _serviceProvider;
 

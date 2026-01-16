@@ -23,7 +23,7 @@ internal sealed class TokenResponseDtoTest
     [Test]
     public void Token_ShouldBeSettable()
     {
-        string token = "test";
+        const string token = "test";
         _tokenResponse.Token = token;
         _tokenResponse.Token.Should().Be(token);
     }

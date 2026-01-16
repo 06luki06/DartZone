@@ -3,7 +3,7 @@ using At.luki0606.DartZone.Shared.Enums;
 
 namespace At.luki0606.DartZone.Shared.Dtos.Responses;
 
-public class DartResponseDto
+public sealed class DartResponseDto
 {
     public Guid Id { get; set; } = Guid.Empty;
     public Multiplier Multiplier { get; set; } = Multiplier.Single;

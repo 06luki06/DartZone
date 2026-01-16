@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace At.luki0606.DartZone.API.Data;
 
-internal class DartZoneDbContext : DbContext
+internal sealed class DartZoneDbContext : DbContext
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<Game> Games => Set<Game>();

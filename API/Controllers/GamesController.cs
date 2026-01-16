@@ -19,7 +19,7 @@ namespace At.luki0606.DartZone.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-internal class GamesController : BaseController
+internal sealed class GamesController : BaseController
 {
     public GamesController(DartZoneDbContext db, IDtoMapperFactory mapperFactory, IValidatorFactory validatorFactory)
         : base(db, mapperFactory, validatorFactory)

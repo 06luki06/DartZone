@@ -3,7 +3,7 @@ using At.luki0606.DartZone.Shared.Dtos.Responses;
 
 namespace At.luki0606.DartZone.API.Mappers.Concrete;
 
-internal class DartResponseDtoMapper : IDtoMapper<Dart, DartResponseDto>
+internal sealed class DartResponseDtoMapper : IDtoMapper<Dart, DartResponseDto>
 {
     public DartResponseDto Map(Dart entity)
     {
