@@ -21,8 +21,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace At.luki0606.DartZone.API;
 
-internal static class Program
+internal sealed class Program
 {
+    private Program()
+    {
+    }
+
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

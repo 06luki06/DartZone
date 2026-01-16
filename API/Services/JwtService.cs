@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace At.luki0606.DartZone.API.Services;
 
-internal class JwtService : IJwtService
+internal sealed class JwtService : IJwtService
 {
     private readonly IConfiguration _config;
 
