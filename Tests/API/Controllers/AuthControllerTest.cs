@@ -5,6 +5,7 @@ using At.luki0606.DartZone.API.Controllers;
 using At.luki0606.DartZone.API.Data;
 using At.luki0606.DartZone.API.Mappers;
 using At.luki0606.DartZone.API.Models;
+using At.luki0606.DartZone.API.Services;
 using At.luki0606.DartZone.API.Validators;
 using At.luki0606.DartZone.Shared.Dtos.Requests;
 using At.luki0606.DartZone.Shared.Dtos.Responses;
@@ -12,6 +13,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace At.luki0606.DartZone.Tests.API.Controllers;
 
@@ -20,15 +22,6 @@ internal sealed class AuthControllerTests
 {
     private DartZoneDbContext _dbContext = null!;
     private AuthController _controller;
-    private const string SecretKey = "SuperSecretJwtKey12345!6789@!012";
-    private const string Issuer = "TestIssuer";
-
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        Environment.SetEnvironmentVariable("JWT_KEY", SecretKey);
-        Environment.SetEnvironmentVariable("JWT_ISSUER", Issuer);
-    }
 
     [SetUp]
     public void SetUp()
@@ -39,7 +32,12 @@ internal sealed class AuthControllerTests
         ValidatorFactory validatorFactory = new(serviceProvider);
         DtoMapperFactory mapperFactory = new(serviceProvider);
 
-        _controller = new(_dbContext, validatorFactory, mapperFactory);
+        Mock<IJwtService> jwtServiceMock = new();
+        jwtServiceMock
+            .Setup(s => s.GenerateToken(It.IsAny<User>()))
+            .Returns("eyJ");
+
+        _controller = new(_dbContext, validatorFactory, mapperFactory, jwtServiceMock.Object);
     }
 
     [TearDown]

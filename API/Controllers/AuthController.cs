@@ -22,9 +22,12 @@ namespace At.luki0606.DartZone.API.Controllers;
 [Route("api/[controller]")]
 internal sealed class AuthController : BaseController
 {
-    public AuthController(DartZoneDbContext db, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory)
+    private readonly IJwtService _jwtService;
+
+    public AuthController(DartZoneDbContext db, IValidatorFactory validatorFactory, IDtoMapperFactory mapperFactory, IJwtService jwtService)
         : base(db, mapperFactory, validatorFactory)
     {
+        _jwtService = jwtService;
     }
 
     #region POST
@@ -61,7 +64,7 @@ internal sealed class AuthController : BaseController
             await _db.SaveChangesAsync().ConfigureAwait(false);
             TokenResponseDto token = new()
             {
-                Token = JwtService.GenerateToken(user)
+                Token = _jwtService.GenerateToken(user)
             };
             return CreatedAtAction(nameof(GetCurrentUser), token);
         }
@@ -98,7 +101,7 @@ internal sealed class AuthController : BaseController
 
         TokenResponseDto token = new()
         {
-            Token = JwtService.GenerateToken(user)
+            Token = _jwtService.GenerateToken(user)
         };
         return Ok(token);
     }

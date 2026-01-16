@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using At.luki0606.DartZone.API.Data;
 using At.luki0606.DartZone.API.Mappers;
 using At.luki0606.DartZone.API.Mappers.Concrete;
 using At.luki0606.DartZone.API.Models;
+using At.luki0606.DartZone.API.Services;
 using At.luki0606.DartZone.API.Validators;
 using At.luki0606.DartZone.API.Validators.Concrete;
 using At.luki0606.DartZone.Shared.Dtos.Requests;
@@ -10,6 +12,7 @@ using At.luki0606.DartZone.Shared.Dtos.Responses;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,9 +31,19 @@ internal static class Program
         AddAuthentication(builder);
         AddValidators(builder);
         AddDtoMappers(builder);
+        AddServices(builder);
 
         builder.Services.AddControllers()
-           .AddJsonOptions(options =>
+            .ConfigureApplicationPartManager(manager =>
+            {
+                ControllerFeatureProvider oldProvider = manager.FeatureProviders.OfType<ControllerFeatureProvider>().FirstOrDefault();
+                if (oldProvider != null)
+                {
+                    manager.FeatureProviders.Remove(oldProvider);
+                }
+                manager.FeatureProviders.Add(new InternalControllerFeatureProvider());
+            })
+            .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                 options.JsonSerializerOptions.PropertyNamingPolicy = null;
@@ -63,7 +76,7 @@ internal static class Program
 
     private static void AddAuthentication(WebApplicationBuilder builder)
     {
-        string key = Environment.GetEnvironmentVariable("JWT_KEY");
+        string key = builder.Configuration["Jwt:Key"];
         byte[] keyBytes = System.Text.Encoding.UTF8.GetBytes(key);
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -75,7 +88,7 @@ internal static class Program
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
                 };
             });
@@ -100,5 +113,24 @@ internal static class Program
         builder.Services.AddScoped<IDtoMapper<Game, GameResponseDto>, GameResponseDtoMapper>();
 
         builder.Services.AddScoped<IDtoMapperFactory, DtoMapperFactory>();
+    }
+
+    private static void AddServices(WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IJwtService, JwtService>();
+    }
+}
+
+internal class InternalControllerFeatureProvider : ControllerFeatureProvider
+{
+    protected override bool IsController(System.Reflection.TypeInfo typeInfo)
+    {
+        if (!typeInfo.IsClass || typeInfo.IsAbstract || typeInfo.ContainsGenericParameters)
+        {
+            return false;
+        }
+
+        return typeInfo.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) ||
+               typeInfo.IsDefined(typeof(Microsoft.AspNetCore.Mvc.ApiControllerAttribute), inherit: true);
     }
 }

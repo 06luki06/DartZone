@@ -10,6 +10,7 @@ services:
       - ConnectionStrings__DefaultConnection=${DEFAULT_CONNECTION}
       - JWT__KEY=${JWT_KEY}
       - JWT__ISSUER=${JWT_ISSUER}
+      - JWT__AUDIENCE=${JWT_AUDIENCE}
     depends_on:
       - postgres
 

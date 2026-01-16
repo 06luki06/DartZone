@@ -6,6 +6,7 @@ using At.luki0606.DartZone.API.Controllers;
 using At.luki0606.DartZone.API.Data;
 using At.luki0606.DartZone.API.Mappers;
 using At.luki0606.DartZone.API.Models;
+using At.luki0606.DartZone.API.Services;
 using At.luki0606.DartZone.API.Validators;
 using At.luki0606.DartZone.Shared.Dtos.Requests;
 using At.luki0606.DartZone.Shared.Dtos.Responses;
@@ -13,6 +14,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace At.luki0606.DartZone.Tests.API.Controllers;
 
@@ -32,8 +34,13 @@ internal sealed class GamesControllerTest
         ValidatorFactory validatorFactory = new(serviceProvider);
         DtoMapperFactory mapperFactory = new(serviceProvider);
 
+        Mock<IJwtService> jwtServiceMock = new();
+        jwtServiceMock
+            .Setup(s => s.GenerateToken(It.IsAny<User>()))
+            .Returns("eyJ");
+
         _gameController = new(_dbContext, mapperFactory, validatorFactory);
-        _authController = new(_dbContext, validatorFactory, mapperFactory);
+        _authController = new(_dbContext, validatorFactory, mapperFactory, jwtServiceMock.Object);
     }
 
     [TearDown]
